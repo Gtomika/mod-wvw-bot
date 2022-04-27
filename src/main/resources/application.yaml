@@ -1,0 +1,36 @@
+## active in all profiles -------------------------------------------
+server:
+  port: ${MWB_PORT:8080}
+com:
+  gaspar:
+    modwvwbot:
+      discord_token: ${BOT_DISCORD_TOKEN}
+## active in debug profile -------------------------------------------
+spring:
+  config:
+    activate:
+      on-profile:
+        - debug
+  datasource:
+    # these are just for local dev environment
+    url: jdbc:postgresql://localhost:5432/modwvwbot
+    username: modwvwbot
+    password: modwvwbot
+logging:
+  config: classpath:log4j2-debug.xml
+  level:
+    com:
+      gaspar:
+        modwvwbot: debug # project classes LOG debug level
+    root: info # non-project classes log INFO level
+---
+## active in release profile -------------------------------------------
+spring:
+  config:
+    activate:
+      on-profile:
+        - release
+logging:
+  config: classpath:log4j2-release.xml
+  level:
+    root: INFO

@@ -1,0 +1,1 @@
+docker run --name modwvwbot-postgres -e POSTGRES_PASSWORD=modwvwbot -e POSTGRES_USER=modwvwbot -e POSTGRES_DB=modwvwbot -d -p 5432:5432 postgres

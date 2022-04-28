@@ -5,6 +5,15 @@ com:
   gaspar:
     modwvwbot:
       discord_token: ${BOT_DISCORD_TOKEN}
+      watched_file_extensions: evtc, zevtc
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+---
 ## active in debug profile -------------------------------------------
 spring:
   config:
@@ -30,6 +39,10 @@ spring:
     activate:
       on-profile:
         - release
+  datasource:
+    url: TODO
+    username: TODO
+    password: TODO
 logging:
   config: classpath:log4j2-release.xml
   level:

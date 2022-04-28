@@ -1,6 +1,7 @@
 package com.gaspar.modwvwbot.config;
 
-import com.gaspar.modwvwbot.services.EventsListenerService;
+import com.gaspar.modwvwbot.services.LogUploadWatcherService;
+import com.gaspar.modwvwbot.services.WatchedChannelCommandService;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -21,13 +22,14 @@ public class JDAConfig {
     @Value("${com.gaspar.modwvwbot.discord_token}")
     private String discordToken;
 
-    private final EventsListenerService eventsListenerService;
+    private final WatchedChannelCommandService watchedChannelCommandService;
+    private final LogUploadWatcherService logUploadWatcherService;
 
     @Bean
     public JDA provideJDA() throws LoginException {
         return JDABuilder.createDefault(discordToken)
-                .addEventListeners(eventsListenerService)
-                .setActivity(Activity.playing("Guild Wars 2"))
+                .addEventListeners(watchedChannelCommandService, logUploadWatcherService)
+                .setActivity(Activity.playing("Guild Wars 2 WvW"))
                 .build();
     }
 

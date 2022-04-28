@@ -14,16 +14,16 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "watched_channels", uniqueConstraints
-        = @UniqueConstraint(columnNames = {"guild_id", "channel_name"}))
+        = @UniqueConstraint(columnNames = {"guild_id", "channel_id"}))
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 public class WatchedChannel {
 
-    public WatchedChannel(Long guildId, String channelName) {
+    public WatchedChannel(Long guildId, Long channelId) {
         this.guildId = guildId;
-        this.channelName = channelName;
+        this.channelId = channelId;
     }
 
     /**
@@ -43,7 +43,7 @@ public class WatchedChannel {
     /**
      * Name of the watched channel.
      */
-    @Column(name = "channel_name", nullable = false)
-    private String channelName;
+    @Column(name = "channel_id", nullable = false)
+    private Long channelId;
 
 }

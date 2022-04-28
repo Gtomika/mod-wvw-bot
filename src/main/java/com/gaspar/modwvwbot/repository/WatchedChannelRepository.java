@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface WatchedChannelRepository extends JpaRepository<WatchedChannel, Long> {
 
-    Optional<WatchedChannel> getByGuildIdAndChannelName(Long guildId, String channelName);
+    Optional<WatchedChannel> getByGuildIdAndChannelId(Long guildId, Long channelId);
 
     List<WatchedChannel> getByGuildId(Long guildId);
 

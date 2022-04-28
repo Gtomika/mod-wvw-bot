@@ -29,7 +29,6 @@ public class WatchedChannelCommandService extends ListenerAdapter {
 
     private static final String OPTION_CHANNEL = "channel_name";
 
-    private final ErrorResponderService errorResponderService;
     private final WatchedChannelRepository watchedChannelRepository;
 
     @Override
@@ -38,7 +37,7 @@ public class WatchedChannelCommandService extends ListenerAdapter {
 
             if(event.getGuild() == null) {
                 log.error("Slash command '/watch_channel' must be sent from a guild.");
-                errorResponderService.sendSlashCommandErrorResponse(event, "Ezt a parancsot csak szerverről lehet küldeni.");
+                event.reply("Ezt a parancsot csak szerverről lehet küldeni.").queue();
                 return;
             }
 
@@ -46,8 +45,8 @@ public class WatchedChannelCommandService extends ListenerAdapter {
 
             var optionAction = event.getOption(OPTION_ACTION);
             if(optionAction == null) {
-                log.error("Required option 'action' was null when processing '/watch_channel' command.");
-                errorResponderService.sendSlashCommandErrorResponse(event, "Hiba: az 'action' értéket meg kell adni.");
+                log.warn("Required option 'action' was null when processing '/watch_channel' command.");
+                event.reply("Hiba: az 'action' értéket meg kell adni.").queue();
                 return;
             }
 
@@ -63,39 +62,39 @@ public class WatchedChannelCommandService extends ListenerAdapter {
                     break;
                 default:
                     log.error("Unknown value for option 'action': {}", optionAction.getAsString());
-                    errorResponderService.sendSlashCommandErrorResponse(event, "Nem megengedett érték: csak 'add' vagy 'delete' lehet.");
+                    event.reply("Nem megengedett érték: csak 'add', 'delete' vagy 'list' lehet.").queue();
             }
         }
     }
 
     @Nullable
-    private String getChannelName(SlashCommandInteractionEvent event) {
+    private Long getTargetChannelId(SlashCommandInteractionEvent event) {
         var optionChannel = event.getOption(OPTION_CHANNEL);
         if(optionChannel == null) {
-            errorResponderService.sendSlashCommandErrorResponse(event, "Hiba: a 'channel_name' értéknek meg kell adni egy szöveges csatornát.");
+            event.reply("Hiba: a 'channel_name' értéknek meg kell adni egy szöveges csatornát.").queue();
             return null;
         }
 
         TextChannel textChannel = optionChannel.getAsTextChannel();
         if(textChannel == null) {
-            errorResponderService.sendSlashCommandErrorResponse(event, "Hiba: Szöveges csatornát kell megadni.");
+            event.reply("Hiba: Szöveges csatornát kell megadni.").queue();
             return null;
         }
         log.debug("Channel name of /watch_channel target is '{}'", textChannel.getName());
-        return textChannel.getName();
+        return textChannel.getIdLong();
     }
 
     private void onAddWatchedChannel(SlashCommandInteractionEvent event) {
         long guildId = event.getGuild().getIdLong();
-        String channelName = getChannelName(event);
-        if(channelName == null) return;
+        Long channelId = getTargetChannelId(event);
+        if(channelId == null) return;
 
-        var optional = watchedChannelRepository.getByGuildIdAndChannelName(guildId, channelName);
+        var optional = watchedChannelRepository.getByGuildIdAndChannelId(guildId, channelId);
         if(optional.isEmpty()) {
-            var watchedChannel = new WatchedChannel(event.getGuild().getIdLong(), event.getChannel().getName());
+            var watchedChannel = new WatchedChannel(event.getGuild().getIdLong(), channelId);
             watchedChannelRepository.save(watchedChannel);
-            log.info("Watching new channel '{}' on guild '{}'", channelName, event.getGuild().getName());
-            event.reply("Mostantól figyelem a " + channelName + " nevű csatornát.").queue();
+            log.info("Watching new channel with id '{}' on guild '{}'", channelId, event.getGuild().getName());
+            event.reply("Mostantól figyelem a <#" + channelId + "> nevű csatornát.").queue();
         } else {
             event.reply("Ezt a csatornát már figyelem.").queue();
         }
@@ -103,14 +102,14 @@ public class WatchedChannelCommandService extends ListenerAdapter {
 
     private void onDeleteWatchedChannel(SlashCommandInteractionEvent event) {
         long guildId = event.getGuild().getIdLong();
-        String channelName = getChannelName(event);
-        if(channelName == null) return;
+        Long channelId = getTargetChannelId(event);
+        if(channelId == null) return;
 
-        var optional = watchedChannelRepository.getByGuildIdAndChannelName(guildId, channelName);
+        var optional = watchedChannelRepository.getByGuildIdAndChannelId(guildId, channelId);
         if(optional.isPresent()) {
             watchedChannelRepository.delete(optional.get());
-            log.info("No longer watching channel '{}' on guild '{}'", channelName, event.getGuild().getName());
-            event.reply("Mostantól NEM figyelem a " + channelName + " nevű csatornát.").queue();
+            log.info("No longer watching channel with id '{}' on guild '{}'", channelId, event.getGuild().getName());
+            event.reply("Mostantól NEM figyelem a <#" + channelId + "> nevű csatornát.").queue();
         } else {
             event.reply("Ezt a csatornát nem is figyeltem.").queue();
         }
@@ -127,15 +126,25 @@ public class WatchedChannelCommandService extends ListenerAdapter {
         }
     }
 
+    /**
+     * Get list of watched channel names, formatted to appear as links in discord.
+     */
     public List<String> getWatchedChannelNames(long guildId) {
         return watchedChannelRepository.getByGuildId(guildId)
                 .stream()
-                .map(WatchedChannel::getChannelName)
+                .map(w -> "<#" + w.getChannelId() + ">")
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Decides if a channel is watched in a guild.
+     */
     public boolean isWatchedChannel(long guildId, Channel channel) {
-        var watched = getWatchedChannelNames(guildId);
-        return watched.contains(channel.getName());
+        for(var watchedChannel: watchedChannelRepository.getByGuildId(guildId)) {
+            if(watchedChannel.getChannelId() == channel.getIdLong()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

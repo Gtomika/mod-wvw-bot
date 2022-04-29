@@ -37,13 +37,20 @@ public class ChannelCommandsService extends ListenerAdapter {
 
     private final WatchedChannelRepository watchedChannelRepository;
     private final AnnouncementChannelRepository announcementChannelRepository;
+    private final AuthorizationService authorizationService;
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if(event.getCommandString().startsWith(WATCH_CHANNEL_COMMAND) || event.getCommandString().startsWith(ANNOUNCEMENT_CHANNEL_COMMAND)) {
+            //authorization
+            if(!authorizationService.isAuthorizedToManageBot(event.getMember())) {
+                log.info("Unauthorized user '{}' attempted to invoke command '{}'", event.getUser().getName(), event.getCommandString());
+                event.reply("Nekem te nem parancsolhatsz!").queue();
+                return;
+            }
+
             var optionAction = getOptionAction(event);
             if(optionAction == null) return;
-
             switch (optionAction.getAsString()) {
                 case "watched_channel_add":
                     onAddWatchedChannel(event);
@@ -76,16 +83,16 @@ public class ChannelCommandsService extends ListenerAdapter {
      */
     private OptionMapping getOptionAction(SlashCommandInteractionEvent event) {
         if(event.getGuild() == null) {
-            log.error("Slash command '/watch_channel' must be sent from a guild.");
+            log.error("Slash command must be sent from a guild.");
             event.reply("Ezt a parancsot csak szerverről lehet küldeni.").queue();
             return null;
         }
 
-        log.info("Received /watch_channel command from user '{}' in guild {}", event.getUser().getName(), event.getGuild());
+        log.info("Received command '{}' from user '{}' in guild {}", event.getCommandString(), event.getUser().getName(), event.getGuild());
 
         var optionAction = event.getOption(OPTION_ACTION);
         if(optionAction == null) {
-            log.warn("Required option 'action' was null when processing '/watch_channel' command.");
+            log.warn("Required option 'action' was null when processing '{}' command.", event.getCommandString());
             event.reply("Hiba: az 'action' értéket meg kell adni.").queue();
             return null;
         }

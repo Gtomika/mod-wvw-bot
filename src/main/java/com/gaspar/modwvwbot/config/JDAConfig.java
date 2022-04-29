@@ -2,7 +2,7 @@ package com.gaspar.modwvwbot.config;
 
 import com.gaspar.modwvwbot.services.LogUploadWatcherService;
 import com.gaspar.modwvwbot.services.ChannelCommandsService;
-import com.gaspar.modwvwbot.services.WvwRoleCommandService;
+import com.gaspar.modwvwbot.services.RoleCommandsService;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -25,7 +25,7 @@ public class JDAConfig {
 
     private final ChannelCommandsService watchedChannelCommandService;
     private final LogUploadWatcherService logUploadWatcherService;
-    private final WvwRoleCommandService wvwRoleCommandService;
+    private final RoleCommandsService wvwRoleCommandService;
 
     @Bean
     public JDA provideJDA() throws LoginException {

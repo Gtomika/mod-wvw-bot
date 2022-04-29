@@ -16,7 +16,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Service that monitors the watched channels for file uploads with the correct extension.
+ * Service that monitors the watched channels for file uploads with the correct extension. Only the watched channels
+ * are monitored for file uploads.
  */
 @Service
 @Slf4j
@@ -28,7 +29,7 @@ public class LogUploadWatcherService extends ListenerAdapter {
 
     private final ExecutorService logProcessingExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-    private final WatchedChannelCommandService watchedChannelCommandService;
+    private final ChannelCommandsService watchedChannelCommandService;
 
     @PostConstruct
     public void postConstruct() {

@@ -1,7 +1,7 @@
 package com.gaspar.modwvwbot.config;
 
 import com.gaspar.modwvwbot.services.LogUploadWatcherService;
-import com.gaspar.modwvwbot.services.WatchedChannelCommandService;
+import com.gaspar.modwvwbot.services.ChannelCommandsService;
 import com.gaspar.modwvwbot.services.WvwRoleCommandService;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.JDA;
@@ -23,7 +23,7 @@ public class JDAConfig {
     @Value("${com.gaspar.modwvwbot.discord_token}")
     private String discordToken;
 
-    private final WatchedChannelCommandService watchedChannelCommandService;
+    private final ChannelCommandsService watchedChannelCommandService;
     private final LogUploadWatcherService logUploadWatcherService;
     private final WvwRoleCommandService wvwRoleCommandService;
 

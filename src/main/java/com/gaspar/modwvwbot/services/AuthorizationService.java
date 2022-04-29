@@ -30,17 +30,21 @@ public class AuthorizationService {
     /**
      * Test if a member is authorized to invoke bot commands.
      */
-    public boolean isAuthorizedToManageBot(@Nullable Member member) {
-        if(member == null) return false;
+    public boolean isUnauthorizedToManageBot(@Nullable Member member) {
+        if(member == null) return true;
         if(member.getPermissions().contains(Permission.ADMINISTRATOR)) {
-            return true; //admins can always manage
+            return false; //admins can always manage
         }
         var managerRoleIds = roleCommandsService.getManagerRoleIds(member.getGuild().getIdLong());
         for(long managerRoleId: managerRoleIds) {
             if(member.getRoles().stream().map(ISnowflake::getIdLong).collect(Collectors.toList()).contains(managerRoleId)) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
+    }
+
+    public String getUnauthorizedMessage() {
+        return "Nekem te nem parancsolhatsz!";
     }
 }

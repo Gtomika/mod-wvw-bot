@@ -43,9 +43,9 @@ public class ChannelCommandsService extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if(event.getCommandString().startsWith(WATCH_CHANNEL_COMMAND) || event.getCommandString().startsWith(ANNOUNCEMENT_CHANNEL_COMMAND)) {
             //authorization
-            if(!authorizationService.isAuthorizedToManageBot(event.getMember())) {
+            if(authorizationService.isUnauthorizedToManageBot(event.getMember())) {
                 log.info("Unauthorized user '{}' attempted to invoke command '{}'", event.getUser().getName(), event.getCommandString());
-                event.reply("Nekem te nem parancsolhatsz!").queue();
+                event.reply(authorizationService.getUnauthorizedMessage()).queue();
                 return;
             }
 

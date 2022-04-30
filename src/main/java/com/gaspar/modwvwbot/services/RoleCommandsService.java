@@ -150,10 +150,7 @@ public class RoleCommandsService extends ListenerAdapter {
     }
 
     private void onListWvwRole(SlashCommandInteractionEvent event) {
-        var formattedRoles = wvwRoleRepository.findByGuildId(event.getGuild().getIdLong())
-                .stream()
-                .map(role -> "<@&" + role.getRoleId() + ">")
-                .collect(Collectors.toList());
+        var formattedRoles = getWvwRoleIdsFormatted(event.getGuild().getIdLong());
         log.info("Listed the following (formatted) role IDs as WvW roles in guild '{}': {}", event.getGuild().getName(), formattedRoles);
         if(!formattedRoles.isEmpty()) {
             event.reply("Ezek a szerver WvW rangjai: " + formattedRoles).setEphemeral(true).queue();
@@ -213,6 +210,20 @@ public class RoleCommandsService extends ListenerAdapter {
         return managerRoleRepository.findByGuildId(guildId)
                 .stream()
                 .map(ManagerRole::getRoleId)
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getWvwRoleIdsFormatted(long guildId) {
+        return wvwRoleRepository.findByGuildId(guildId)
+                .stream()
+                .map(role -> "<@&" + role.getRoleId() + ">")
+                .collect(Collectors.toList());
+    }
+
+    public List<Long> getWvwRoleIds(long guildId) {
+        return wvwRoleRepository.findByGuildId(guildId)
+                .stream()
+                .map(WvwRole::getRoleId)
                 .collect(Collectors.toList());
     }
 }

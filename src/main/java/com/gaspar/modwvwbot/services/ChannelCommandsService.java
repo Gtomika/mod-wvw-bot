@@ -92,7 +92,7 @@ public class ChannelCommandsService extends ListenerAdapter {
 
         var optionAction = event.getOption(OPTION_ACTION);
         if(optionAction == null) {
-            log.warn("Required option 'action' was null when processing '{}' command.", event.getCommandString());
+            log.debug("Required option 'action' was null when processing '{}' command.", event.getCommandString());
             event.reply("Hiba: az 'action' értéket meg kell adni.").queue();
             return null;
         }
@@ -229,6 +229,13 @@ public class ChannelCommandsService extends ListenerAdapter {
         return announcementChannelRepository.getByGuildId(guildId)
                 .stream()
                 .map(a -> "<#" + a.getChannelId() + ">")
+                .collect(Collectors.toList());
+    }
+
+    public List<Long> getAnnouncementChannels(long guildId) {
+        return announcementChannelRepository.getByGuildId(guildId)
+                .stream()
+                .map(AnnouncementChannel::getChannelId)
                 .collect(Collectors.toList());
     }
 }

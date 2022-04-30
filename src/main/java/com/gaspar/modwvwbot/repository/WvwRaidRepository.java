@@ -13,4 +13,6 @@ public interface WvwRaidRepository extends JpaRepository<WvwRaid, Long> {
     Optional<WvwRaid> findByGuildIdAndTime(long guildId, String time);
 
     List<WvwRaid> findByGuildId(long guildId);
+
+    List<WvwRaid> findByRemindTime(String remindTime);
 }

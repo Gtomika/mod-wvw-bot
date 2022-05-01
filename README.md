@@ -22,7 +22,8 @@ by the bot. Discord client will offer autocomplete for actions and roles. Syntax
 ```[action]``` can be:
  - *add*: mark a role as WvW-related.
  - *delete*: un-mark a role.
- - *list*: List all WvW-related roles (in this case, don't specify ```[role]```).
+ - *list*: List all WvW-related roles (in this case, don't specify ```[role]```). Anyone 
+can invoke this command.
 
 ### /manager_role
 
@@ -36,7 +37,8 @@ admins can always use the commands regardless of these roles.
 ```[action]``` can be:
 - *add*: mark a role as manager.
 - *delete*: un-mark a role.
-- *list*: List all manager roles (in this case, don't specify ```[role]```).
+- *list*: List all manager roles (in this case, don't specify ```[role]```). Anyone
+  can invoke this command.
 
 ### /watch_channel
 
@@ -50,7 +52,8 @@ the bot pick these files up and start processing them.
 ```[action]``` can be:
 - *add*: mark channel as watched.
 - *delete*: un-mark channel.
-- *list*: List all watched channels (in this case, don't specify ```[text channel]```).
+- *list*: List all watched channels (in this case, don't specify ```[text channel]```). Anyone
+  can invoke this command.
 
 ### /announcement_channel
 
@@ -64,7 +67,8 @@ reminders on these channels.
 ```[action]``` can be:
 - *add*: mark channel as announcement target.
 - *delete*: un-mark channel.
-- *list*: List all announcement channels (in this case, don't specify ```[text channel]```).
+- *list*: List all announcement channels (in this case, don't specify ```[text channel]```). Anyone
+  can invoke this command.
 
 ### /wvw_raid_add
 
@@ -129,6 +133,30 @@ Delete a scheduled WvW raid. Raids are identified by the time they occur at.
 Get a list of scheduled wvw raids in the server, including start times, durations and reminders.
 
 **Note:** everyone can invoke this command.
+
+### /home_world
+
+Set (or get) the home server of the guild. This is required to use commands 
+that query the GW2 API for WvW status. Getting the home server does not 
+require authentication, but setting it does.
+
+```
+/home_world [world_name?]
+```
+
+```[world_name]``` is optional, if it is not given then the command will return 
+the currently set home world. Note that the name must be the full name of the world, 
+including the language tag if there is any! For example:
+ - *Piken Square*.
+ - *Dzagonur [DE]*
+
+**Additional functionality about home world**: The bot will query the GW2 API once a 
+day to check the population of the home world. It will send a notification on the 
+announcement channels if:
+- The world was previously full, but now it isn't.
+- The world previously had more space, but now it's full.
+
+This can't be disabled, but it happens very rarely.
 
 ### Elite Insights parser
 

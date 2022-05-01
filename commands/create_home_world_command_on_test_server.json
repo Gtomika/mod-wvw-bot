@@ -1,0 +1,16 @@
+{
+  "type": 1,
+  "name": "home_world",
+  "application_id": 968767607501115462,
+  "guild_id": 968768762885046272,
+  "description": "Guild világának (szerverének) kezelése.",
+  "dm_permission": false,
+  "options": [
+    {
+      "name": "world_name",
+      "description": "A világ (szerver) neve, például 'Piken Square' vagy 'Dzagonur [DE]'.",
+      "required": false,
+      "type": 3
+    }
+  ]
+}

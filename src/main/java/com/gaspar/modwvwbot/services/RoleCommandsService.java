@@ -40,31 +40,23 @@ public class RoleCommandsService extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if(event.getCommandString().startsWith(WVW_ROLE_COMMAND) || event.getCommandString().startsWith(MANAGER_ROLE_COMMAND)) {
-            //authorization
-            if(authorizationService.isUnauthorizedToManageBot(event.getMember())) {
-                log.info("Unauthorized user '{}' attempted to invoke command '{}'", event.getUser().getName(), event.getCommandString());
-                event.reply(authorizationService.getUnauthorizedMessage()).queue();
-                return;
-            }
-
             var optionAction = getOptionAction(event);
             if(optionAction == null) return;
-
             switch (optionAction.getAsString()) {
                 case "wvw_role_add":
-                    onAddWvwRole(event);
+                    if(authorizationService.authorize(event)) onAddWvwRole(event);
                     break;
                 case "wvw_role_delete":
-                    onDeleteWvwRole(event);
+                    if(authorizationService.authorize(event)) onDeleteWvwRole(event);
                     break;
                 case "wvw_role_list":
                     onListWvwRole(event);
                     break;
                 case "manager_role_add":
-                    onAddManagerRole(event);
+                    if(authorizationService.authorize(event)) onAddManagerRole(event);
                     break;
                 case "manager_role_delete":
-                    onDeleteManagerRole(event);
+                    if(authorizationService.authorize(event)) onDeleteManagerRole(event);
                     break;
                 case "manager_role_list":
                     onListManagerRole(event);

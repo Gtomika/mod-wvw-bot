@@ -42,30 +42,23 @@ public class ChannelCommandsService extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         if(event.getCommandString().startsWith(WATCH_CHANNEL_COMMAND) || event.getCommandString().startsWith(ANNOUNCEMENT_CHANNEL_COMMAND)) {
-            //authorization
-            if(authorizationService.isUnauthorizedToManageBot(event.getMember())) {
-                log.info("Unauthorized user '{}' attempted to invoke command '{}'", event.getUser().getName(), event.getCommandString());
-                event.reply(authorizationService.getUnauthorizedMessage()).queue();
-                return;
-            }
-
             var optionAction = getOptionAction(event);
             if(optionAction == null) return;
             switch (optionAction.getAsString()) {
                 case "watched_channel_add":
-                    onAddWatchedChannel(event);
+                    if(authorizationService.authorize(event)) onAddWatchedChannel(event);
                     break;
                 case "watched_channel_delete":
-                    onDeleteWatchedChannel(event);
+                    if(authorizationService.authorize(event)) onDeleteWatchedChannel(event);
                     break;
                 case "watched_channel_list":
                     onListWatchedChannels(event);
                     break;
                 case "announcement_channel_add":
-                    onAddAnnouncementChannel(event);
+                    if(authorizationService.authorize(event)) onAddAnnouncementChannel(event);
                     break;
                 case "announcement_channel_delete":
-                    onDeleteAnnouncementChannel(event);
+                    if(authorizationService.authorize(event)) onDeleteAnnouncementChannel(event);
                     break;
                 case "announcement_channel_list":
                     onListAnnouncementChannels(event);

@@ -2,13 +2,12 @@ package com.gaspar.modwvwbot.services;
 
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.HomeWorldNotFoundException;
+import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.model.HomeWorld;
-import com.gaspar.modwvwbot.model.WvwRole;
 import com.gaspar.modwvwbot.model.gw2api.HomeWorldResponse;
 import com.gaspar.modwvwbot.model.gw2api.Population;
 import com.gaspar.modwvwbot.repository.HomeWorldRepository;
 import com.gaspar.modwvwbot.services.gw2api.Gw2WorldService;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -16,6 +15,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -37,6 +37,9 @@ public class HomeWorldCommandService extends ListenerAdapter {
     private final JDA jda;
     private final ChannelCommandsService channelCommandsService;
     private final RoleCommandsService roleCommandsService;
+
+    @Value("${com.gaspar.modwvwbot.emote_ids.gem}")
+    private long gemEmoteId;
 
     public HomeWorldCommandService(AuthorizationService authorizationService, HomeWorldRepository homeWorldRepository,
                                    Gw2WorldService gw2WorldService, @Lazy JDA jda, ChannelCommandsService channelCommandsService,
@@ -68,7 +71,7 @@ public class HomeWorldCommandService extends ListenerAdapter {
         }
     }
 
-    @Value
+    @lombok.Value
     static class OptionWorldCheck {
         boolean provided;
         boolean valid;
@@ -108,9 +111,17 @@ public class HomeWorldCommandService extends ListenerAdapter {
             //reply with current home world
             log.info("'{}' has queried the home world of guild '{}', which is '{}'.", event.getUser().getName(),
                     event.getGuild().getName(), homeWorld.get().getWorldName());
-            event.reply(" - A guild WvW világa jelenleg **" + homeWorld.get().getWorldName() + "**\n" +
-                    " - A világ telítettsége: " + homeWorld.get().getPopulation().getHungarian())
-                    .queue();
+
+            StringBuilder message = new StringBuilder();
+            message.append(" - A guild WvW világa jelenleg **").append(homeWorld.get().getWorldName()).append("**\n")
+                            .append(" - A világ telítettsége: ").append(homeWorld.get().getPopulation().getHungarian());
+            if(homeWorld.get().getPopulation() != Population.Full) {
+                String gemEmote = EmoteUtils.customEmote("gem", gemEmoteId);
+                message.append("\n").append(" - A transfer költsége: ").append(homeWorld.get().getPopulation().getTransferCost())
+                        .append(gemEmote);
+            }
+
+            event.reply(message.toString()).queue();
         } else {
             log.info("'{}' has queried the home world of guild '{}', but there is not home world set.",
                     event.getUser().getName(), event.getGuild().getName());
@@ -187,10 +198,12 @@ public class HomeWorldCommandService extends ListenerAdapter {
             log.info("Guild '{}' has no WvW roles, so the notification will not ping anyone.", guild.getName());
         }
 
+        String gemEmote = EmoteUtils.customEmote("gem", gemEmoteId);
         StringBuilder message = new StringBuilder();
         message.append("Figyelem: a guild WvW világa, **").append(homeWorld.getWorldName())
                 .append("**, mostantól nyitva van.\n")
-                .append(" - Az új telítettség: ").append(homeWorld.getPopulation().getHungarian()).append("\n");
+                .append(" - Az új telítettség: ").append(homeWorld.getPopulation().getHungarian()).append("\n")
+                .append(" - A transfer költsége ").append(homeWorld.getPopulation().getTransferCost()).append(gemEmote);
         for(String role: wvwRoles) {
             message.append(role).append(" ");
         }

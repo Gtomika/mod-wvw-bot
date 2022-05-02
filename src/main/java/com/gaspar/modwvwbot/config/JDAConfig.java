@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.config;
 
+import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.services.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,7 @@ public class JDAConfig {
                 .addEventListeners(watchedChannelCommandService, logUploadWatcherService,
                         wvwRoleCommandService, wvwRaidService, privateMessageResponderService,
                         homeWorldCommandService)
-                .setActivity(Activity.playing("Guild Wars 2 WvW"))
+                .setActivity(Activity.playing("WvW"))
                 .build();
     }
 

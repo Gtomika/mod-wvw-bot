@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.model.AnnouncementChannel;
 import com.gaspar.modwvwbot.model.WatchedChannel;
 import com.gaspar.modwvwbot.repository.AnnouncementChannelRepository;
@@ -115,13 +116,14 @@ public class ChannelCommandsService extends ListenerAdapter {
         if(channelId == null) return;
 
         var optional = watchedChannelRepository.getByGuildIdAndChannelId(guildId, channelId);
+        String emote = EmoteUtils.defaultEmote("eyes");
         if(optional.isEmpty()) {
             var watchedChannel = new WatchedChannel(event.getGuild().getIdLong(), channelId);
             watchedChannelRepository.save(watchedChannel);
             log.info("Watching new channel with id '{}' on guild '{}'", channelId, event.getGuild().getName());
-            event.reply("Mostantól figyelem a <#" + channelId + "> csatornát.").queue();
+            event.reply("Mostantól figyelem a <#" + channelId + "> csatornát " + emote).queue();
         } else {
-            event.reply("Ezt a csatornát már figyelem.").queue();
+            event.reply("Ezt a csatornát már figyelem " + emote).queue();
         }
     }
 
@@ -144,10 +146,13 @@ public class ChannelCommandsService extends ListenerAdapter {
         long guildId = event.getGuild().getIdLong();
         List<String> watchedChannels = getWatchedChannelNames(guildId);
         log.info("Listed the following watched channels on guild '{}': {}", event.getGuild().getName(), watchedChannels);
+
         if(watchedChannels.isEmpty()) {
-            event.reply("Nem figyelek egyetlen csatonát sem ezen a szerveren.").queue();
+            String emote = EmoteUtils.defaultEmote("sleeping");
+            event.reply("Nem figyelek egyetlen csatonát sem ezen a szerveren " + emote).queue();
         } else {
-            event.reply("Ezeket a csatornákat figyelem a szerveren: " + watchedChannels).queue();
+            String emote = EmoteUtils.defaultEmote("eyes");
+            event.reply("Ezeket a csatornákat figyelem " + emote + " a szerveren: " + watchedChannels).queue();
         }
     }
 
@@ -179,13 +184,14 @@ public class ChannelCommandsService extends ListenerAdapter {
         if(channelId == null) return;
 
         var optional = announcementChannelRepository.getByGuildIdAndChannelId(guildId, channelId);
+        String emote = EmoteUtils.defaultEmote("mega");
         if(optional.isEmpty()) {
             var announcementChannel = new AnnouncementChannel(event.getGuild().getIdLong(), channelId);
             announcementChannelRepository.save(announcementChannel);
             log.info("New announcement channel with id '{}' on guild '{}'", channelId, event.getGuild().getName());
-            event.reply("A hirdetéseimet mostantól <#" + channelId + "> csatornára is kirakom.").queue();
+            event.reply("A hirdetéseimet mostantól <#" + channelId + "> csatornára is kirakom " + emote).queue();
         } else {
-            event.reply("Erre a csatornára már most is írok hirdetéseket.").queue();
+            event.reply("Erre a csatornára már most is írok hirdetéseket " + emote).queue();
         }
     }
 
@@ -200,7 +206,7 @@ public class ChannelCommandsService extends ListenerAdapter {
             log.info("Channel with id '{}' on guild '{}' is no longer an announcement channel.", channelId, event.getGuild().getName());
             event.reply("Mostantól NEM használom hirdetésekre <#" + channelId + "> csatornát.").queue();
         } else {
-            event.reply("Ezt a csatornát nem is figyeltem.").queue();
+            event.reply("Ezt a csatornát nem is használtam hirdetésre.").queue();
         }
     }
 
@@ -211,7 +217,8 @@ public class ChannelCommandsService extends ListenerAdapter {
         if(announcementChannels.isEmpty()) {
             event.reply("Nem hirdetek egyetlen csatonán sem ezen a szerveren.").queue();
         } else {
-            event.reply("Ezeken a csatornákon hirdetek a szerveren: " + announcementChannels).queue();
+            String emote = EmoteUtils.defaultEmote("mega");
+            event.reply("Ezeken a csatornákon hirdetek " + emote + " a szerveren: " + announcementChannels).queue();
         }
     }
 

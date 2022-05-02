@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.misc.EmoteUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ISnowflake;
@@ -7,6 +8,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class AuthorizationService {
+
+    @Value("${com.gaspar.modwvwbot.emote_ids.gem}")
+    private long commanderEmoteId;
 
     private final RoleCommandsService roleCommandsService;
 
@@ -61,6 +66,7 @@ public class AuthorizationService {
     }
 
     public String getUnauthorizedMessage() {
-        return "Hoppá, ehhez nincs jogosultságod! Nekem csak egy commander parancsolhat.";
+        String commander = EmoteUtils.customEmote("commander", commanderEmoteId);
+        return "Hoppá, ehhez nincs jogosultságod! Nekem csak a commander " + commander + " parancsolhat.";
     }
 }

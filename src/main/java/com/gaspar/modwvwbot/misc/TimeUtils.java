@@ -1,5 +1,8 @@
 package com.gaspar.modwvwbot.misc;
 
+import com.gaspar.modwvwbot.model.WvwRaid;
+import org.springframework.lang.Nullable;
+
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
@@ -132,8 +135,14 @@ public class TimeUtils {
     /**
      * Creates a time string that is the given amount of minutes before the given
      * time string.
+     * @param time Start time.
+     * @param minutes Minutes to subtract from start time. Can be null, which means the reminder
+     *                is disabled, and {@link com.gaspar.modwvwbot.model.WvwRaid#DISABLED} is returned.
      */
-    public static String createReminderTimeStringRoundedToFiveMinutes(String time, int minutes) {
+    public static String createReminderTimeStringRoundedToFiveMinutes(String time, @Nullable Integer minutes) {
+        if(minutes == null) {
+            return WvwRaid.DISABLED;
+        }
         //get LocalDateTime of time string
         LocalDateTime date = convertTimeStringToDate(time);
         //subtract minutes
@@ -160,5 +169,34 @@ public class TimeUtils {
             minString = String.valueOf(minString.charAt(1));
         }
         return date.withMinute(Integer.parseInt(minString));
+    }
+
+    /**
+     * Convert valid time string into hungarian version. Friday-10:00 -> Péntek-10:00
+     */
+    public static String createHungarianTimeString(String time) {
+        var parts = time.split("-");
+        return time.replace(parts[0], hungarianDay(parts[0]));
+    }
+
+    private static String hungarianDay(String day) {
+        switch (day) {
+            case "Monday":
+                return "Hétfő";
+            case "Tuesday":
+                return "Kedd";
+            case "Wednesday":
+                return "Szerda";
+            case "Thursday":
+                return "Csütörtök";
+            case "Friday":
+                return "Péntek";
+            case "Saturday":
+                return "Szombat";
+            case "Sunday":
+                return "Vasárnap";
+            default:
+                throw new IllegalArgumentException("No such day: " + day);
+        }
     }
 }

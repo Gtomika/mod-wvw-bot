@@ -9,13 +9,16 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Population {
 
-    Low("Alacsony"),
-    Medium("Közepes"),
-    High("Magas"),
-    VeryHigh("Nagyon magas"),
-    Full("Teljesen tele van");
+    Low("Alacsony", 500),
+    Medium("Közepes", 500),
+    High("Magas", 1000),
+    VeryHigh("Nagyon magas", 1800),
+    Full("Teljesen tele van", Integer.MAX_VALUE);
 
     @Getter
     private final String hungarian;
+
+    @Getter
+    private final int transferCost;
 
 }

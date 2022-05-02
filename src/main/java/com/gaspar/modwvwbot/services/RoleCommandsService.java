@@ -122,7 +122,7 @@ public class RoleCommandsService extends ListenerAdapter {
             log.info("Role with id '{}' is now a WvW rank in guild '{}'", roleId, event.getGuild().getName());
             event.reply("A <@&" + roleId + "> mostantól egy WvW rang.").setEphemeral(true).queue();
         } else {
-            event.reply("Ez már most is egy WvW rang.").queue();
+            event.reply("A <@&" + roleId + "> már most is egy WvW rang.").queue();
         }
     }
 
@@ -135,9 +135,9 @@ public class RoleCommandsService extends ListenerAdapter {
         if(optional.isPresent()) {
             wvwRoleRepository.delete(optional.get());
             log.info("Role with id '{}' is no longer a WvW rank in guild '{}'", roleId, event.getGuild().getName());
-            event.reply("A <@&" + roleId + "> rang mostantól nem WvW rang.").setEphemeral(true).queue();
+            event.reply("A <@&" + roleId + "> mostantól nem WvW rang.").setEphemeral(true).queue();
         } else {
-            event.reply("Ez a rang nem is volt WvW rang.").queue();
+            event.reply("A <@&" + roleId + "> nem is volt WvW rang.").queue();
         }
     }
 
@@ -163,7 +163,7 @@ public class RoleCommandsService extends ListenerAdapter {
             log.info("Role with id '{}' is now a manager rank in guild '{}'", roleId, event.getGuild().getName());
             event.reply("A <@&" + roleId + "> mostantól egy kezelő rang.").setEphemeral(true).queue();
         } else {
-            event.reply("Ez már most is egy kezelő rang.").queue();
+            event.reply("A <@&" + roleId + "> már egy kezelő rang.").queue();
         }
     }
 
@@ -178,7 +178,7 @@ public class RoleCommandsService extends ListenerAdapter {
             log.info("Role with id '{}' is no longer a manager rank in guild '{}'", roleId, event.getGuild().getName());
             event.reply("A <@&" + roleId + "> rang mostantól nem kezelő rang.").setEphemeral(true).queue();
         } else {
-            event.reply("Ez a rang nem is volt kezelő rang.").queue();
+            event.reply("A <@&" + roleId + "> nem is volt kezelő rang.").queue();
         }
     }
 

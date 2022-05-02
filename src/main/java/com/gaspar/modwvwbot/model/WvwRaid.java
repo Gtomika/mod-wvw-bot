@@ -18,6 +18,8 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class WvwRaid {
 
+    public static final String DISABLED = "disabled";
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -43,8 +45,8 @@ public class WvwRaid {
     private Integer durationMinutes;
 
     /**
-     * How much time before the event should there be a reminder. In minutes.
-     * Can be null, in which case there is no reminder.
+     * How much time before the event should there be a reminder. This value can be null,
+     * if the reminder is disabled on the event, see {@link #remindTime}.
      */
     @Column(name = "remind_time_minutes")
     @Nullable
@@ -52,10 +54,9 @@ public class WvwRaid {
 
     /**
      * Time when remind should happen for the event. Formatted similarly to {@link #time}. This is
-     * exactly {@link #remindTimeMinutes} minutes before {@link #time}. Can be null if there is no
-     * reminder for the event.
+     * exactly {@link #remindTimeMinutes} minutes before {@link #time}. Can be {@link #DISABLED},
+     * in that case there is no reminder.
      */
     @Column(name = "remind_time")
-    @Nullable
     private String remindTime;
 }

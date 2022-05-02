@@ -8,6 +8,10 @@ com:
       watched_file_extensions: evtc, zevtc
       default_reminder_minutes: 15
       gw2_api_url: https://api.guildwars2.com
+      emote_ids:
+        gem: 970640961468248144
+        commander: 970638989449105408
+
 spring:
   jpa:
     hibernate:

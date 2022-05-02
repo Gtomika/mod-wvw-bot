@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.misc.TimeUtils;
 import com.gaspar.modwvwbot.model.WvwRaid;
 import com.gaspar.modwvwbot.repository.WvwRaidRepository;
@@ -88,17 +89,15 @@ public class WvwRaidService extends ListenerAdapter {
         Integer minutes = getValidDurationMinutes(event);
         if(minutes == null) return;
         //can be null
-        Integer remindMinutes = getValidReminderOptionMinutes(event);
-        String remindTime = null;
-        if(remindMinutes != null) {
-            remindTime = TimeUtils.createReminderTimeStringRoundedToFiveMinutes(time, remindMinutes);
-        }
+        var reminderCheck = getValidReminderOptionMinutes(event);
+        if(reminderCheck == null) return;
+        String remindTime = TimeUtils.createReminderTimeStringRoundedToFiveMinutes(time, reminderCheck.remindMinutes);
 
         WvwRaid raid = WvwRaid.builder()
                 .guildId(event.getGuild().getIdLong())
                 .time(time)
                 .durationMinutes(minutes)
-                .remindTimeMinutes(remindMinutes)
+                .remindTimeMinutes(reminderCheck.remindMinutes)
                 .remindTime(remindTime)
                 .build();
 
@@ -107,10 +106,10 @@ public class WvwRaidService extends ListenerAdapter {
         if(optional.isEmpty()) {
             wvwRaidRepository.save(raid);
             log.info("Wvw raid added for guild '{}' by '{}': {}", event.getGuild().getName(), event.getUser().getName(), raid);
-            event.reply("Elmentettem a WvW raidet " + time + " időpontban.").queue();
+            event.reply("Elmentettem a WvW raidet **" + TimeUtils.createHungarianTimeString(time) + "** időpontban.").queue();
         } else {
             log.debug("Raid at time '{}' is already present in guild '{}'", time, event.getGuild().getName());
-            event.reply("A " + time + " időpontban már van egy WvW raid.").queue();
+            event.reply("A **" + TimeUtils.createHungarianTimeString(time) + "** időpontban már van egy WvW raid.").queue();
         }
     }
 
@@ -161,15 +160,25 @@ public class WvwRaidService extends ListenerAdapter {
         return minutes;
     }
 
+    @lombok.Value
+    static class ReminderOptionCheck {
+        boolean reminderNeeded;
+        Integer remindMinutes;
+    }
+
     /**
      * Gets valid reminder time in minutes from the command. This is an optional parameter.
-     * @return The time in minutes or null if it was not specified.
+     * @return {@link ReminderOptionCheck} with results, or null if the parameter was invalid and the command
+     * can't be executed.
      */
     @Nullable
-    private Integer getValidReminderOptionMinutes(SlashCommandInteractionEvent event) {
+    private ReminderOptionCheck getValidReminderOptionMinutes(SlashCommandInteractionEvent event) {
         OptionMapping optionReminder = event.getOption(OPTION_REMIND_TIME);
         if(optionReminder == null) {
-            return null; //not required
+            return new ReminderOptionCheck(true, defaultReminderMinutes); //not required, default
+        }
+        if(WvwRaid.DISABLED.equals(optionReminder.getAsString())) {
+            return new ReminderOptionCheck(false, null);
         }
         int minutes = TimeUtils.parseDurationToMinutes(optionReminder.getAsString());
         if(minutes == 0) {
@@ -183,7 +192,7 @@ public class WvwRaidService extends ListenerAdapter {
             event.reply("Hiba: A 'remind_time' időtartam minimum 5 perc, maximum egy nap.").queue();
             return null;
         }
-        return minutes;
+        return new ReminderOptionCheck(true, minutes);
     }
 
     private void onWvwRaidDeleteCommand(SlashCommandInteractionEvent event) {
@@ -193,24 +202,29 @@ public class WvwRaidService extends ListenerAdapter {
         if(optional.isPresent()) {
             wvwRaidRepository.delete(optional.get());
             log.info("Deleted WvW raid at time '{}' in guild '{}'.", time, event.getGuild().getName());
-            event.reply("Mostantól nincs WvW raid a " + time + " időpontban.").queue();
+            event.reply("Mostantól nincs WvW raid a " + TimeUtils.createHungarianTimeString(time) + " időpontban.").queue();
         } else {
             log.debug("No WvW raid at time '{}' in guild '{}', not deleting anything.", time, event.getGuild().getName());
-            event.reply("A " + time + " időpontban nincs is WvW raid.").queue();
+            event.reply("A " + TimeUtils.createHungarianTimeString(time) + " időpontban nincs is WvW raid.").queue();
         }
     }
 
     private void onWvwRaidListCommand(SlashCommandInteractionEvent event) {
+        final String emoteClock = EmoteUtils.defaultEmote("clock10");
         var raidsAsStrings = wvwRaidRepository.findByGuildId(event.getGuild().getIdLong())
                 .stream()
                 .map(raid -> {
                     StringBuilder builder = new StringBuilder();
-                    builder.append("Időpont: ").append(raid.getTime()).append(", ");
+                    String hungarianTime = TimeUtils.createHungarianTimeString(raid.getTime());
+                    builder.append("Időpont ").append(emoteClock).append(": **").append(hungarianTime).append("**, ");
                     String durationString = TimeUtils.createDurationStringFromMinutes(raid.getDurationMinutes());
                     builder.append("Hossz: ").append(durationString).append(", ");
-                    String reminderString = raid.getRemindTimeMinutes() == null ? TimeUtils.createDurationStringFromMinutes(defaultReminderMinutes)
-                            : TimeUtils.createDurationStringFromMinutes(raid.getRemindTimeMinutes());
-                    builder.append("Emlékeztető ennyivel előtte: ").append(reminderString);
+                    var reminderCheck = reminderCheck(raid);
+                    if(reminderCheck.reminderNeeded) {
+                        builder.append("Emlékeztető ennyivel előtte: ").append(reminderCheck.remindString);
+                    } else {
+                        builder.append("Nincs emlékeztető.");
+                    }
                     return builder.toString();
                 })
                 .collect(Collectors.toList());
@@ -221,6 +235,21 @@ public class WvwRaidService extends ListenerAdapter {
             builder.append(" - ").append(raidString).append("\n");
         }
         event.reply(builder.toString()).queue();
+    }
+
+    @lombok.Value
+    static class ReminderCheck {
+        boolean reminderNeeded;
+        String remindString;
+    }
+
+    private ReminderCheck reminderCheck(WvwRaid raid) {
+        if(raid.getRemindTime().equals(WvwRaid.DISABLED)) {
+            return new ReminderCheck(false, null);
+        } else {
+            String alarm = EmoteUtils.defaultEmote("alarm_clock");
+            return new ReminderCheck(true, raid.getRemindTimeMinutes() + " perc " + alarm);
+        }
     }
 
     /**
@@ -253,9 +282,11 @@ public class WvwRaidService extends ListenerAdapter {
             }
             //compose message
             final StringBuilder message = new StringBuilder();
-            message.append("WvW raid kezdődik ").append(raid.getRemindTimeMinutes()).append(" perc múlva!\n");
+            String alarmEmote = EmoteUtils.defaultEmote("alarm_clock");
+            message.append("WvW raid kezdődik ").append(raid.getRemindTimeMinutes()).append(" perc múlva! ").append(alarmEmote).append("\n");
             String duration = TimeUtils.createDurationStringFromMinutes(raid.getDurationMinutes());
-            message.append("Időpont: ").append(raid.getTime()).append(", Hossz: ").append(duration).append("\n");
+            String timeHungarian = TimeUtils.createHungarianTimeString(raid.getTime());
+            message.append("Időpont: **").append(timeHungarian).append("**, Hossz: ").append(duration).append("\n");
             for(int i = 0; i<wvwRoles.size(); i++) {
                 message.append(wvwRoles.get(i));
                 if(i < wvwRoles.size()-1) {

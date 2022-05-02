@@ -3,22 +3,27 @@ package com.gaspar.modwvwbot.services;
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.HomeWorldNotFoundException;
 import com.gaspar.modwvwbot.model.HomeWorld;
+import com.gaspar.modwvwbot.model.WvwRole;
 import com.gaspar.modwvwbot.model.gw2api.HomeWorldResponse;
+import com.gaspar.modwvwbot.model.gw2api.Population;
 import com.gaspar.modwvwbot.repository.HomeWorldRepository;
 import com.gaspar.modwvwbot.services.gw2api.Gw2WorldService;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
  * Handles the /home_world command.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class HomeWorldCommandService extends ListenerAdapter {
 
@@ -29,6 +34,20 @@ public class HomeWorldCommandService extends ListenerAdapter {
     private final AuthorizationService authorizationService;
     private final HomeWorldRepository homeWorldRepository;
     private final Gw2WorldService gw2WorldService;
+    private final JDA jda;
+    private final ChannelCommandsService channelCommandsService;
+    private final RoleCommandsService roleCommandsService;
+
+    public HomeWorldCommandService(AuthorizationService authorizationService, HomeWorldRepository homeWorldRepository,
+                                   Gw2WorldService gw2WorldService, @Lazy JDA jda, ChannelCommandsService channelCommandsService,
+                                   RoleCommandsService roleCommandsService) {
+        this.authorizationService = authorizationService;
+        this.homeWorldRepository = homeWorldRepository;
+        this.gw2WorldService = gw2WorldService;
+        this.jda = jda;
+        this.channelCommandsService = channelCommandsService;
+        this.roleCommandsService = roleCommandsService;
+    }
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
@@ -69,7 +88,7 @@ public class HomeWorldCommandService extends ListenerAdapter {
         //is present, validate
         try {
             log.debug("Validating home world name '{}' with GW2 API...", optionName.getAsString());
-            var response = gw2WorldService.fetchHomeWorld(optionName.getAsString());
+            var response = gw2WorldService.fetchHomeWorldByName(optionName.getAsString());
             return new OptionWorldCheck(true, true, response);
         } catch (Gw2ApiException e) {
             log.warn("Failed to validate world with name '{}' because of GW2 API failure.", optionName.getAsString(), e);
@@ -77,7 +96,7 @@ public class HomeWorldCommandService extends ListenerAdapter {
             return new OptionWorldCheck(true, false, null);
         } catch (HomeWorldNotFoundException e) {
             log.info("'{}' is not a valid GW2 world name.", optionName.getAsString());
-            event.reply("A '" + optionName.getAsString() + "' nem egy GW2 világ. Ellenőrizd, hogy nem " +
+            event.reply("A *'" + optionName.getAsString() + "'* nem egy GW2 világ. Ellenőrizd, hogy nem " +
                     "gépelted-e el. Figyelem, a nem angol világoknál a nyelvi tag is a név része, pl: 'Dzagonur [DE]'.").queue();
             return new OptionWorldCheck(true, false, null);
         }
@@ -89,8 +108,8 @@ public class HomeWorldCommandService extends ListenerAdapter {
             //reply with current home world
             log.info("'{}' has queried the home world of guild '{}', which is '{}'.", event.getUser().getName(),
                     event.getGuild().getName(), homeWorld.get().getWorldName());
-            event.reply("A guild WvW világa jelenleg " + homeWorld.get().getWorldName() + "\n" +
-                    "A világ telítettsége: " + homeWorld.get().getPopulation().getHungarian())
+            event.reply(" - A guild WvW világa jelenleg **" + homeWorld.get().getWorldName() + "**\n" +
+                    " - A világ telítettsége: " + homeWorld.get().getPopulation().getHungarian())
                     .queue();
         } else {
             log.info("'{}' has queried the home world of guild '{}', but there is not home world set.",
@@ -122,6 +141,106 @@ public class HomeWorldCommandService extends ListenerAdapter {
                     .build();
             homeWorldRepository.save(newHomeWorld);
         }
-        event.reply("A guild WvW világa mostantól " + homeWorldResponse.getName() + ".").queue();
+        event.reply("A guild WvW világa mostantól **" + homeWorldResponse.getName() + "**.").queue();
     }
+
+    /**
+     * Run a job every day once that checks if the home worlds have filled up, or in case if they were full,
+     * opened up. These events trigger notifications on the announcement channels of the guild.
+     */
+    @Scheduled(cron = "0 0 16 * * *")
+    public void runHomeWorldJob() {
+        var homeWorlds = homeWorldRepository.findAll();
+        log.info("Running home world population check job for {} guilds...", homeWorlds.size());
+
+        for(HomeWorld homeWorld: homeWorlds) {
+            var guild = jda.getGuildById(homeWorld.getGuildId());
+            if(guild == null) {
+                log.warn("No guild with ID '{}' was found, even though it has a home world set. Skipping...", homeWorld.getGuildId());
+                continue;
+            }
+            try {
+                HomeWorldResponse response = gw2WorldService.fetchHomeWorldById(homeWorld.getWorldId());
+                if(homeWorld.getPopulation() == Population.Full && response.getPopulation() != Population.Full) {
+                    log.info("Home world of guild '{}', which is '{}' is no longer full. Sending notification...",
+                            guild.getName(), homeWorld.getWorldName());
+                    homeWorld = saveWorldPopulationChange(homeWorld, response.getPopulation());
+                    notifyGuildAboutHomeWorldOpened(guild, homeWorld);
+                } else if(homeWorld.getPopulation() != Population.Full && response.getPopulation() == Population.Full) {
+                    log.info("Home world of guild '{}', which is '{}' is now full. Sending notification...",
+                            guild.getName(), homeWorld.getWorldName());
+                    homeWorld = saveWorldPopulationChange(homeWorld, response.getPopulation());
+                    notifyGuildAboutHomeWorldClosed(guild, homeWorld);
+                } else {
+                    log.debug("Home world of guild '{}', which is '{}' has not opened or closed. It is still: {}",
+                            guild.getName(), homeWorld.getWorldName(), homeWorld.getPopulation().name());
+                }
+            } catch (Exception e) {
+                log.error("Failed to check population change for guild '{}'.", guild.getName(), e);
+            }
+        }
+    }
+
+    private void notifyGuildAboutHomeWorldOpened(Guild guild, HomeWorld homeWorld) {
+        var wvwRoles = roleCommandsService.getWvwRoleIdsFormatted(homeWorld.getGuildId());
+        if(wvwRoles.isEmpty()) {
+            log.info("Guild '{}' has no WvW roles, so the notification will not ping anyone.", guild.getName());
+        }
+
+        StringBuilder message = new StringBuilder();
+        message.append("Figyelem: a guild WvW világa, **").append(homeWorld.getWorldName())
+                .append("**, mostantól nyitva van.\n")
+                .append(" - Az új telítettség: ").append(homeWorld.getPopulation().getHungarian()).append("\n");
+        for(String role: wvwRoles) {
+            message.append(role).append(" ");
+        }
+
+        var announcementChannels = channelCommandsService.getAnnouncementChannels(homeWorld.getGuildId());
+        if(announcementChannels.isEmpty()) {
+            log.info("Guild '{}' has no announcement channels, so the notification about population change can't be posted.", guild.getName());
+            return;
+        }
+        for(long channelId: announcementChannels) {
+            TextChannel textChannel = jda.getTextChannelById(channelId);
+            if(textChannel == null) {
+                log.warn("Text channel with ID '{}' was not found in guild '{}'. Skipping...", channelId, guild.getName());
+                continue;
+            }
+            textChannel.sendMessage(message.toString()).queue();
+        }
+    }
+
+    private void notifyGuildAboutHomeWorldClosed(Guild guild, HomeWorld homeWorld) {
+        var wvwRoles = roleCommandsService.getWvwRoleIdsFormatted(homeWorld.getGuildId());
+        if(wvwRoles.isEmpty()) {
+            log.info("Guild '{}' has no WvW roles, so the notification will not ping anyone.", guild.getName());
+        }
+
+        StringBuilder message = new StringBuilder();
+        message.append("Figyelem: a guild WvW világa, **").append(homeWorld.getWorldName())
+                .append("**, mostantól tele van, nem lehet transferelni oda.\n");
+        for(String role: wvwRoles) {
+            message.append(role).append(" ");
+        }
+
+        var announcementChannels = channelCommandsService.getAnnouncementChannels(homeWorld.getGuildId());
+        if(announcementChannels.isEmpty()) {
+            log.info("Guild '{}' has no announcement channels, so the notification about population change can't be posted.", guild.getName());
+            return;
+        }
+        for(long channelId: announcementChannels) {
+            TextChannel textChannel = jda.getTextChannelById(channelId);
+            if(textChannel == null) {
+                log.warn("Text channel with ID '{}' was not found in guild '{}'. Skipping...", channelId, guild.getName());
+                continue;
+            }
+            textChannel.sendMessage(message.toString()).queue();
+        }
+    }
+
+    private HomeWorld saveWorldPopulationChange(HomeWorld homeWorld, Population newPopulation) {
+        homeWorld.setPopulation(newPopulation);
+        return homeWorldRepository.save(homeWorld);
+    }
+
 }

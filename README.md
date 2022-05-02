@@ -151,7 +151,7 @@ including the language tag if there is any! For example:
  - *Dzagonur [DE]*
 
 **Additional functionality about home world**: The bot will query the GW2 API once a 
-day to check the population of the home world. It will send a notification on the 
+day (at 16:00) to check the population of the home world. It will send a notification on the 
 announcement channels if:
 - The world was previously full, but now it isn't.
 - The world previously had more space, but now it's full.

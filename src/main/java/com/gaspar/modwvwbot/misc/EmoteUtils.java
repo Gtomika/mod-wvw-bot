@@ -15,4 +15,13 @@ public abstract class EmoteUtils {
         return ":" + name + ":";
     }
 
+    /**
+     * Create an animated custom emote that display in Discord chat.
+     * @param name Emote name.
+     * @param id Emote id.
+     * @return The emote string.
+     */
+    public static String animatedEmote(String name, long id) {
+        return "<a:" + name + ":" + id + ">";
+    }
 }

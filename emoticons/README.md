@@ -18,3 +18,5 @@ Emotes that discord has by default.
  - :eyes:
  - :first_place:, :second_place:, :third_place:
  - :alarm_clock:
+ - :key:
+ - :warning:

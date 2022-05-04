@@ -88,6 +88,9 @@ smallest supported interval). Only one raid can start at a certain time.
 
 Note the 5 minutes interval rule: xx:x0 or xx:x5, for example 18:31 is invalid.
 
+Raids must be specified in english, but when listed, they will be localised 
+to hungarian, like *Péntek-20:00*.
+
 ```[duration]``` is the length of the event. It is a string in the following format (examples):
 - 1h, 1h30m, 2h45m, 35m
 
@@ -157,6 +160,54 @@ announcement channels if:
 - The world previously had more space, but now it's full.
 
 This can't be disabled, but it happens very rarely.
+
+### /wvw_items
+
+Fetches how many WvW related items and are present 
+on your account. These are the items that are currently listed:
+
+ - Memories of battle
+ - Emblems of the conqueror
+ - Emblems of the avenger
+ - Legendary spikes
+ - Warlord's armor boxes
+
+This command can be called by anyone even in private messages, but it requires an API key. See the 
+section below about API keys on how to add one.
+
+### /wvw_currencies
+
+Fetches how many WvW related currencies you have in your wallet. These 
+currencies are listed:
+
+ - Skirmish claim tickets.
+ - Badges of honor
+ - Proof of heroics (all kind)
+
+This command can be called by anyone even in private messages, but it requires an API key. See the
+section below about API keys on how to add one.
+
+### API keys
+
+Certain commands access the protected parts of the Gw2 API, and so require 
+an API key. Users can add their keys by sending a **private** message 
+to the bot in the following format:
+
+```
+modwvwbot-apikey [API key here]
+```
+
+The bot will check and test the key, and respond accordingly. If the response 
+is successful, the key is saved. It can later be updated with the 
+same command.
+
+**Note**: At least the following API key permissions are needed to make 
+all commands work:
+ - account
+ - inventories
+ - characters
+ - wallet
+ - progression
 
 ### Elite Insights parser
 

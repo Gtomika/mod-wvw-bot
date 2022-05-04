@@ -1,0 +1,34 @@
+package com.gaspar.modwvwbot.model;
+
+import lombok.Data;
+
+/**
+ * Represents a Wvw related item or currency that is queried in the
+ * /wvw_items or /wvw_currencies command.
+ * @see com.gaspar.modwvwbot.config.WvwItemsConfig
+ * @see com.gaspar.modwvwbot.config.WvwCurrenciesConfig
+ */
+@Data
+public class WvwItemOrCurrency {
+
+    /**
+     * GW2 ID of this item/currency.
+     */
+    private long id;
+
+    /**
+     * Name if the item/currency.
+     */
+    private String name;
+
+    /**
+     * Name of the emote that should be shown next to this item/currency.
+     */
+    private String emoteName;
+
+    /**
+     * ID of the emote that should be shown next to this item/currency.
+     */
+    private long emoteId;
+
+}

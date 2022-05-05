@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -171,4 +172,23 @@ public class ApiKeyService {
                     " Később ugyanezzel a módszerrel tudod megváltoztatni.").queue();
         }
     }
-}
+
+    public Optional<ApiKey> getApiKeyByUserId(long userId) {
+        return apiKeyRepository.findByUserId(userId);
+    }
+
+    public String getNoApiKeyAddedMessage() {
+        String key = EmoteUtils.defaultEmote("key");
+        return "Még nem adtál nekem egy API kulcsot " + key + " ! Erre szükségem van, hogy " +
+                "le tudjam kérni az adatokat a Gw2 szervereiről.\n" +
+                " - API kulcsot itt tudsz létrehozni: " + apiKeyUrl + "\n" +
+                " - Add hozzá ezeket az engedélyeket: " + permissions + "\n" +
+                " - Küld el nekem a kulcsot **privát** üzenetben így: 'modwvwbot-apikey [kulcs]'";
+    }
+
+    public String getNoPermissionsMessage() {
+        String error = EmoteUtils.defaultEmote("no_entry_sign");
+        return "Az API kulcsod nem rendlkezik a megfelelő engedélyekkel " + error + "\n" +
+                "Hozz létre és adj hozzá új kulcsot, ezekkel az engedélyekkel:\n" + permissions;
+    }
+ }

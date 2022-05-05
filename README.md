@@ -166,11 +166,11 @@ This can't be disabled, but it happens very rarely.
 Fetches how many WvW related items and are present 
 on your account. These are the items that are currently listed:
 
- - Memories of battle
- - Emblems of the conqueror
- - Emblems of the avenger
- - Legendary spikes
- - Warlord's armor boxes
+ - Memories of Battle
+ - Emblems of the Conqueror
+ - Emblems of the Avenger
+ - Legendary Spikes
+ - Gifts of Battle
 
 This command can be called by anyone even in private messages, but it requires an API key. See the 
 section below about API keys on how to add one.

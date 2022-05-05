@@ -37,6 +37,7 @@ public class JDAConfig {
     private final PrivateMessageResponderService privateMessageResponderService;
     private final HomeWorldCommandService homeWorldCommandService;
     private final GeneralMessageResponderService generalMessageResponderService;
+    private final WvwItemsService wvwItemsService;
 
     @Bean
     public JDA provideJDA() throws LoginException {
@@ -44,7 +45,8 @@ public class JDAConfig {
         return JDABuilder.create(discordToken, gatewayIntents)
                 .addEventListeners(watchedChannelCommandService, logUploadWatcherService,
                         wvwRoleCommandService, wvwRaidService, privateMessageResponderService,
-                        homeWorldCommandService, generalMessageResponderService)
+                        homeWorldCommandService, generalMessageResponderService,
+                        wvwItemsService)
                 .setActivity(Activity.playing("WvW"))
                 .build();
     }

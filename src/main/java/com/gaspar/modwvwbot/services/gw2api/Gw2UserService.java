@@ -36,15 +36,7 @@ public class Gw2UserService {
         log.debug("Fetching Gw2 account data from: " + getUserEndpoint);
         getUserEndpoint += "?access_token=" + apiKey;
         var response = restTemplate.getForEntity(getUserEndpoint, Gw2User.class);
-
-        if(response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-            throw new UnauthorizedException("Api key is invalid.");
-        } else if(response.getStatusCode() != HttpStatus.OK) {
-            log.warn("Gw2 API failed to respond, status code: {}", response.getStatusCodeValue());
-            throw new Gw2ApiException("Gw2 Api failed to respond: " + response.getStatusCodeValue());
-        } else {
-            //ok
-            return response.getBody();
-        }
+        if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
+        return response.getBody();
     }
 }

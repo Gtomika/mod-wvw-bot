@@ -6,7 +6,6 @@ import com.gaspar.modwvwbot.model.gw2api.HomeWorldResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -36,10 +35,6 @@ public class Gw2WorldService {
         log.debug("GW2 API endpoint for fetching all worlds is: {}", getAllWorldsEndpoint);
 
         var response = restTemplate.getForEntity(getAllWorldsEndpoint, HomeWorldResponse[].class);
-        if(response.getStatusCode() != HttpStatus.OK) {
-            log.warn("GW2 API failed to respond to fetching all worlds, status was '{}'", response.getStatusCodeValue());
-            throw new Gw2ApiException("Failed to fetch worlds from /worlds?ids=all");
-        }
         HomeWorldResponse[] homeWorlds = response.getBody();
         if(homeWorlds == null) {
             log.warn("GW2 API failed to send world data, empty response.");
@@ -54,23 +49,15 @@ public class Gw2WorldService {
     }
 
     /**
-     * Query the GW2 API for one home world with the given id.
+     * Query the GW2 API for one home world with the given VALID id.
      * @throws Gw2ApiException If the API failed to respond.
-     * @throws HomeWorldNotFoundException If there is no world with this id.
      */
-    public HomeWorldResponse fetchHomeWorldById(@NonNull Integer id) throws Gw2ApiException, HomeWorldNotFoundException {
+    public HomeWorldResponse fetchHomeWorldById(@NonNull Integer id) throws Gw2ApiException {
         String getByIdEndpoint = apiBaseUrl + "/v2/worlds/" + id;
         log.debug("GW2 API endpoint for getting world with id '{}' is: {}", id, getByIdEndpoint);
 
         var response = restTemplate.getForEntity(getByIdEndpoint, HomeWorldResponse.class);
-        if(response.getStatusCode() == HttpStatus.NOT_FOUND) {
-            log.info("No world with ID '{}' exists.", id);
-            throw new HomeWorldNotFoundException("NO world with " + id + " exists.");
-        }
-        if(response.getStatusCode() != HttpStatus.OK) {
-            log.warn("GW2 API failed to return data about world with ID '{}', status code: {}", id, response.getStatusCodeValue());
-            throw new Gw2ApiException("Failed to query world with id " + id);
-        }
+        if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
         return response.getBody();
     }
 

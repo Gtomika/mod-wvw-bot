@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
@@ -9,12 +10,13 @@ import lombok.Data;
  * @see com.gaspar.modwvwbot.config.WvwCurrenciesConfig
  */
 @Data
+@AllArgsConstructor
 public class WvwItemOrCurrency {
 
     /**
      * GW2 ID of this item/currency.
      */
-    private long id;
+    private int id;
 
     /**
      * Name if the item/currency.

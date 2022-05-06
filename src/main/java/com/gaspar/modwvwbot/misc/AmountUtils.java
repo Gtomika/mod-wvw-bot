@@ -52,15 +52,43 @@ public abstract class AmountUtils {
      */
     public static void countInInventory(List<Amount> amounts, InventoryResponse inventory) {
         for(BagResponse bag: inventory.getBags()) {
-            for(ItemResponse item: bag.getItems()) {
-                //null item means there is nothing in that inventory slot
-                if(item == null) continue;
-                //is this item one of the items of interest?
-                for(var amount: amounts) {
-                    if(item.getId() == amount.getItemOrCurrency().getId()) {
-                        amount.increaseAmountBy(item.getAmount());
-                        break;
-                    }
+            countItemList(amounts, bag.getItems());
+        }
+    }
+
+    /**
+     * Count items of interest in a list of items.
+     * @param amounts Amount of items. This list will be modified.
+     * @param items All items found. Searched for items of interest.
+     */
+    public static void countItemList(List<Amount> amounts, List<ItemResponse> items) {
+        for(ItemResponse item: items) {
+            //null item means there is nothing in that inventory slot
+            if(item == null) continue;
+            //is this item one of the items of interest?
+            for(var amount: amounts) {
+                if(item.getId() == amount.getItemOrCurrency().getId()) {
+                    amount.increaseAmountBy(item.getAmount());
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Count items of interest in a array of items.
+     * @param amounts Amount of items. This list will be modified.
+     * @param items All items found. Searched for items of interest.
+     */
+    public static void countItemArray(List<Amount> amounts, ItemResponse[] items) {
+        for(ItemResponse item: items) {
+            //null item means there is nothing in that inventory slot
+            if(item == null) continue;
+            //is this item one of the items of interest?
+            for(var amount: amounts) {
+                if(item.getId() == amount.getItemOrCurrency().getId()) {
+                    amount.increaseAmountBy(item.getAmount());
+                    break;
                 }
             }
         }

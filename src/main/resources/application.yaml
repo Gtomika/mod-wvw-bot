@@ -16,6 +16,7 @@ com:
         gem: 970640961468248144
         commander: 970638989449105408
         loading: 971306366687928371
+      nubaras_discord_id: 416289572289249280
 
 spring:
   jpa:

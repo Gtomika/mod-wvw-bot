@@ -4,7 +4,6 @@ import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.misc.AmountUtils;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
-import com.gaspar.modwvwbot.model.WvwItemOrCurrency;
 import com.gaspar.modwvwbot.model.gw2api.Amount;
 import com.gaspar.modwvwbot.model.gw2api.InventoryResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -38,30 +35,27 @@ public class Gw2InventoryService {
     /**
      * Fetches all inventories of characters and counts how many items of interest are in them.
      * @param apiKey Api key.
-     * @param items Items of interest.
-     * @return List with all of {@code items} counted.
+     * @param amounts Some amounts of items of interest. This list will be updated.
      * @param hook Used to edit the loading message.
      * @throws Gw2ApiException If the API fails to respond.
      * @throws UnauthorizedException If the API key does not have characters or inventories permission.
      */
-    public List<Amount> countItemsInInventories(
+    public void countItemsInInventories(
             String apiKey,
-            List<WvwItemOrCurrency> items,
+            List<Amount> amounts,
             InteractionHook hook
     ) throws Gw2ApiException, UnauthorizedException {
         String loading = EmoteUtils.animatedEmote("loading", loadingId);
         hook.editOriginal("A karaktereid lekérdezése... " + loading).queue();
-        log.debug("Request to count the following items in inventories: {}", items);
+        log.debug("Request to count '{}' items in inventories.", amounts.size());
         var characterNames = gw2CharacterService.fetchCharacterNames(apiKey);
         log.debug("Fetched these character names from Gw2 API: {}", characterNames);
         //check inventory of all characters
-        List<Amount> amounts = AmountUtils.emptyAmounts(items);
         for(String name: characterNames) {
             hook.editOriginal(name + " inventory-jának vizsgálata... " + loading).queue();
             log.debug("Fetching the inventory of character '{}'...", name);
             countItemsInInventory(apiKey, name, amounts);
         }
-        return amounts;
     }
 
     /**

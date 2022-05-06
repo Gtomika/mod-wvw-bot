@@ -229,6 +229,14 @@ Specify the details in the request body:
 The ```guildIds``` field is optional. If not specified, all announcement channels will be 
 used to send the message. Otherwise, use discord guild IDs to limit the target guilds.
 
+A security token is required for the endpoint to work:
+
+```
+[url]/announcement?token=mysecuritytoken
+```
+
+Token can be set using environmental variable ```SECURITY_TOKEN```.
+
 Response is *JSON* with info about how many channels and guilds were affected.
 
 ### Elite Insights parser

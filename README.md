@@ -211,6 +211,26 @@ all commands work:
  - wallet
  - progression
 
+### Announcements using HTTP POST
+
+The ```/announcement``` endpoint can be used to *POST* announcement requests to guilds. 
+
+Specify the details in the request body:
+
+```json
+{
+  "message": "Message to be announced",
+  "guildIds": [
+    1, 2, 3
+  ]
+}
+```
+
+The ```guildIds``` field is optional. If not specified, all announcement channels will be 
+used to send the message. Otherwise, use discord guild IDs to limit the target guilds.
+
+Response is *JSON* with info about how many channels and guilds were affected.
+
 ### Elite Insights parser
 
 **NOT USED FOR NOW**. Don't have to do this!

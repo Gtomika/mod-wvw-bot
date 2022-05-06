@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.SlashCommandHandler;
 import com.gaspar.modwvwbot.model.ManagerRole;
 import com.gaspar.modwvwbot.model.WvwRole;
 import com.gaspar.modwvwbot.repository.ManagerRoleRepository;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RoleCommandsService extends ListenerAdapter {
+public class RoleCommandsService implements SlashCommandHandler {
 
     private static final String WVW_ROLE_COMMAND = "/wvw_role";
 
@@ -38,10 +38,10 @@ public class RoleCommandsService extends ListenerAdapter {
     private final AuthorizationService authorizationService;
 
     @Override
-    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if(event.getCommandString().startsWith(WVW_ROLE_COMMAND) || event.getCommandString().startsWith(MANAGER_ROLE_COMMAND)) {
-            var optionAction = getOptionAction(event);
-            if(optionAction == null) return;
+    public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+        var optionAction = getOptionAction(event);
+        if(optionAction == null) return;
+        if(event.getCommandString().startsWith(WVW_ROLE_COMMAND)) {
             switch (optionAction.getAsString()) {
                 case "wvw_role_add":
                     if(authorizationService.authorize(event)) onAddWvwRole(event);
@@ -52,22 +52,45 @@ public class RoleCommandsService extends ListenerAdapter {
                 case "wvw_role_list":
                     onListWvwRole(event);
                     break;
-                case "manager_role_add":
-                    if(authorizationService.authorize(event)) onAddManagerRole(event);
-                    break;
-                case "manager_role_delete":
-                    if(authorizationService.authorize(event)) onDeleteManagerRole(event);
-                    break;
-                case "manager_role_list":
-                    onListManagerRole(event);
-                    break;
                 default:
-                    log.error("Unknown value for option 'action': {}", optionAction.getAsString());
+                    log.info("Unknown value for option 'action': {}", optionAction.getAsString());
                     event.reply("Nem megengedett érték: csak 'add', 'delete' vagy list lehet.").queue();
             }
+        } else if(event.getCommandString().startsWith(MANAGER_ROLE_COMMAND)) {
+           switch (optionAction.getAsString()) {
+               case "manager_role_add":
+                   if(authorizationService.authorize(event)) onAddManagerRole(event);
+                   break;
+               case "manager_role_delete":
+                   if(authorizationService.authorize(event)) onDeleteManagerRole(event);
+                   break;
+               case "manager_role_list":
+                   onListManagerRole(event);
+                   break;
+               default:
+                   log.info("Unknown value for option 'action': {}", optionAction.getAsString());
+                   event.reply("Nem megengedett érték: csak 'add', 'delete' vagy list lehet.").queue();
+           }
+        } else {
+            log.warn("Unknown command routed to Role Command Handler Service.");
+            event.reply("Hiba történt. Ezt kérlek jelezd a fejlesztőnek.").queue();
         }
     }
 
+    @Override
+    public String commandName() {
+        return null;
+    }
+
+    @Override
+    public boolean handlesMultipleCommands() {
+        return true;
+    }
+
+    @Override
+    public String[] commandNames() {
+        return new String[] {WVW_ROLE_COMMAND, MANAGER_ROLE_COMMAND};
+    }
 
     /**
      * Extract command option "action" from the request.

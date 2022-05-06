@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.SlashCommandHandler;
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.misc.AmountUtils;
@@ -23,15 +24,12 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class WvwCurrenciesService extends ListenerAdapter {
+public class WvwCurrenciesService implements SlashCommandHandler {
 
     private static final String WVW_CURRENCIES_COMMAND = "/wvw_currencies";
 
     @Value("${com.gaspar.modwvwbot.emote_ids.loading}")
     private long loadingId;
-
-    @Value("${com.gaspar.modwvwbot.nubaras_discord_id}")
-    private long developerId;
 
     private final List<WvwItemOrCurrency> wvwItems;
     private final ApiKeyService apiKeyService;
@@ -47,18 +45,24 @@ public class WvwCurrenciesService extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if(event.getCommandString().startsWith(WVW_CURRENCIES_COMMAND)) {
-            log.info("/wvw_currencies command sent by '{}'. Starting currency fetching...", event.getUser().getName());
-            var apiKey = apiKeyService.getApiKeyByUserId(event.getUser().getIdLong());
-            if(apiKey.isPresent()) {
-                //this user already added an API key
-                event.deferReply().queue(interactionHook -> countCurrenciesAndReply(apiKey.get().getKey(), interactionHook));
-            } else {
-                log.info("User '{}' has no API key added, and the /wvw_currencies command can't be started.", event.getUser().getName());
-                event.reply(apiKeyService.getNoApiKeyAddedMessage()).queue();
-            }
+    public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+        log.info("/wvw_currencies command sent by '{}'. Starting currency fetching...", event.getUser().getName());
+        var apiKey = apiKeyService.getApiKeyByUserId(event.getUser().getIdLong());
+        if(apiKey.isPresent()) {
+            //this user already added an API key
+            event.deferReply().queue(interactionHook -> countCurrenciesAndReply(apiKey.get().getKey(), interactionHook));
+        } else {
+            log.info("User '{}' has no API key added, and the /wvw_currencies command can't be started.", event.getUser().getName());
+            event.reply(apiKeyService.getNoApiKeyAddedMessage()).queue();
         }
+    }
+
+    /**
+     * Get the name of the command which is handled by this service.
+     */
+    @Override
+    public String commandName() {
+        return WVW_CURRENCIES_COMMAND;
     }
 
     /**
@@ -100,9 +104,6 @@ public class WvwCurrenciesService extends ListenerAdapter {
             message.append(" - ").append(amount.getItemOrCurrency().getName()).append(": ");
             message.append(amount.getAmount()).append(" ").append(itemEmote).append("\n");
         }
-        String mention = "<@" + developerId + ">";
-        message.append("Nem teljes a lista? Nem számolok valamilyen fontos WvW-s fizetőeszközt? Írj ")
-                .append(mention).append("-nak!");
         hook.editOriginal(message.toString()).queue();
     }
 }

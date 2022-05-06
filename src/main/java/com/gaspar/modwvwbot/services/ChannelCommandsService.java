@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.SlashCommandHandler;
 import com.gaspar.modwvwbot.controllers.dto.AnnouncementRequest;
 import com.gaspar.modwvwbot.controllers.dto.AnnouncementResponse;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
@@ -12,7 +13,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Channel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class ChannelCommandsService extends ListenerAdapter {
+public class ChannelCommandsService implements SlashCommandHandler {
 
     private static final String WATCH_CHANNEL_COMMAND = "/watch_channel";
 
@@ -56,10 +56,10 @@ public class ChannelCommandsService extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if(event.getCommandString().startsWith(WATCH_CHANNEL_COMMAND) || event.getCommandString().startsWith(ANNOUNCEMENT_CHANNEL_COMMAND)) {
-            var optionAction = getOptionAction(event);
-            if(optionAction == null) return;
+    public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+        var optionAction = getOptionAction(event);
+        if(optionAction == null) return;
+        if(event.getCommandString().startsWith(WATCH_CHANNEL_COMMAND)) {
             switch (optionAction.getAsString()) {
                 case "watched_channel_add":
                     if(authorizationService.authorize(event)) onAddWatchedChannel(event);
@@ -70,6 +70,12 @@ public class ChannelCommandsService extends ListenerAdapter {
                 case "watched_channel_list":
                     onListWatchedChannels(event);
                     break;
+                default:
+                    log.error("Unknown value for option 'action': {}", optionAction.getAsString());
+                    event.reply("Nem megengedett érték: csak 'add', 'delete' vagy 'list' lehet.").queue();
+            }
+        } else if(event.getCommandString().startsWith(ANNOUNCEMENT_CHANNEL_COMMAND)) {
+            switch (optionAction.getAsString()) {
                 case "announcement_channel_add":
                     if(authorizationService.authorize(event)) onAddAnnouncementChannel(event);
                     break;
@@ -83,7 +89,25 @@ public class ChannelCommandsService extends ListenerAdapter {
                     log.error("Unknown value for option 'action': {}", optionAction.getAsString());
                     event.reply("Nem megengedett érték: csak 'add', 'delete' vagy 'list' lehet.").queue();
             }
+        } else {
+            log.warn("Unknown command routed to Role Command Handler Service.");
+            event.reply("Hiba történt. Ezt kérlek jelezd a fejlesztőnek.").queue();
         }
+    }
+
+    @Override
+    public String commandName() {
+        return null;
+    }
+
+    @Override
+    public boolean handlesMultipleCommands() {
+        return true;
+    }
+
+    @Override
+    public String[] commandNames() {
+        return new String[] {WATCH_CHANNEL_COMMAND, ANNOUNCEMENT_CHANNEL_COMMAND};
     }
 
     /**

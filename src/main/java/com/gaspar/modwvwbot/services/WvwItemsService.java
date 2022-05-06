@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.SlashCommandHandler;
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.misc.AmountUtils;
@@ -25,15 +26,12 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class WvwItemsService extends ListenerAdapter {
+public class WvwItemsService implements SlashCommandHandler {
 
     private static final String WVW_ITEMS_COMMAND = "/wvw_items";
 
     @Value("${com.gaspar.modwvwbot.emote_ids.loading}")
     private long loadingId;
-
-    @Value("${com.gaspar.modwvwbot.nubaras_discord_id}")
-    private long developerId;
 
     private final List<WvwItemOrCurrency> wvwItems;
     private final ApiKeyService apiKeyService;
@@ -55,18 +53,24 @@ public class WvwItemsService extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if(event.getCommandString().startsWith(WVW_ITEMS_COMMAND)) {
-            log.info("/wvw_items command sent by '{}'. Starting item fetching...", event.getUser().getName());
-            var apiKey = apiKeyService.getApiKeyByUserId(event.getUser().getIdLong());
-            if(apiKey.isPresent()) {
-                //this user already added an API key
-                event.deferReply().queue(interactionHook -> countItemsAndReply(apiKey.get().getKey(), interactionHook));
-            } else {
-                log.info("User '{}' has no API key added, and the /wvw_items command can't be started.", event.getUser().getName());
-                event.reply(apiKeyService.getNoApiKeyAddedMessage()).queue();
-            }
+    public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+        log.info("/wvw_items command sent by '{}'. Starting item fetching...", event.getUser().getName());
+        var apiKey = apiKeyService.getApiKeyByUserId(event.getUser().getIdLong());
+        if(apiKey.isPresent()) {
+            //this user already added an API key
+            event.deferReply().queue(interactionHook -> countItemsAndReply(apiKey.get().getKey(), interactionHook));
+        } else {
+            log.info("User '{}' has no API key added, and the /wvw_items command can't be started.", event.getUser().getName());
+            event.reply(apiKeyService.getNoApiKeyAddedMessage()).queue();
         }
+    }
+
+    /**
+     * Get the name of the command which is handled by this service.
+     */
+    @Override
+    public String commandName() {
+        return WVW_ITEMS_COMMAND;
     }
 
     /**
@@ -116,9 +120,6 @@ public class WvwItemsService extends ListenerAdapter {
             message.append(" - ").append(amount.getItemOrCurrency().getName()).append(": ");
             message.append(amount.getAmount()).append(" ").append(itemEmote).append("\n");
         }
-        String mention = "<@" + developerId + ">";
-        message.append("Nem teljes a lista? Nem számolok valamilyen fontos WvW-s tárgyat? Írj ")
-                .append(mention).append("-nak!");
         hook.editOriginal(message.toString()).queue();
     }
 }

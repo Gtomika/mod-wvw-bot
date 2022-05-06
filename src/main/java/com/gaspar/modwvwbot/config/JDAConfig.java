@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.config;
 
+import com.gaspar.modwvwbot.SlashCommandDispatcher;
 import com.gaspar.modwvwbot.services.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,24 +31,19 @@ public class JDAConfig {
      */
     private final List<GatewayIntent> gatewayIntents = List.of(GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES);
 
-    private final ChannelCommandsService watchedChannelCommandService;
     private final LogUploadWatcherService logUploadWatcherService;
-    private final RoleCommandsService wvwRoleCommandService;
-    private final WvwRaidService wvwRaidService;
     private final PrivateMessageResponderService privateMessageResponderService;
-    private final HomeWorldCommandService homeWorldCommandService;
     private final GeneralMessageResponderService generalMessageResponderService;
-    private final WvwItemsService wvwItemsService;
-    private final WvwCurrenciesService wvwCurrenciesService;
+    private final SlashCommandDispatcher slashCommandDispatcher;
 
     @Bean
     public JDA provideJDA() throws LoginException {
         log.info("Initializing JDA with the following gateway intents: {}", gatewayIntents);
         return JDABuilder.create(discordToken, gatewayIntents)
-                .addEventListeners(watchedChannelCommandService, logUploadWatcherService,
-                        wvwRoleCommandService, wvwRaidService, privateMessageResponderService,
-                        homeWorldCommandService, generalMessageResponderService,
-                        wvwItemsService, wvwCurrenciesService)
+                .addEventListeners(logUploadWatcherService,
+                        privateMessageResponderService,
+                        generalMessageResponderService,
+                        slashCommandDispatcher)
                 .setActivity(Activity.playing("WvW"))
                 .build();
     }

@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.SlashCommandHandler;
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.HomeWorldNotFoundException;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
@@ -13,7 +14,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class HomeWorldCommandService extends ListenerAdapter {
+public class HomeWorldCommandService implements SlashCommandHandler {
 
     private static final String HOME_WORLD_COMMAND = "/home_world";
 
@@ -53,22 +53,28 @@ public class HomeWorldCommandService extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if(event.getCommandString().startsWith(HOME_WORLD_COMMAND)) {
-            var check = getValidWorldNameOptionOrNull(event);
-            if(check.isProvided() && !check.isValid()) {
-                return; //error response already sent
-            }
-            if(check.isProvided()) {
-                //authorize
-                if(authorizationService.authorize(event)) {
-                    //set new home world
-                    saveNewHomeWorld(event, check.homeWorldResponse);
-                }
-            } else {
-               replyWithCurrentHomeWorld(event);
-            }
+    public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
+        var check = getValidWorldNameOptionOrNull(event);
+        if(check.isProvided() && !check.isValid()) {
+            return; //error response already sent
         }
+        if(check.isProvided()) {
+            //authorize
+            if(authorizationService.authorize(event)) {
+                //set new home world
+                saveNewHomeWorld(event, check.homeWorldResponse);
+            }
+        } else {
+            replyWithCurrentHomeWorld(event);
+        }
+    }
+
+    /**
+     * Get the name of the command which is handled by this service.
+     */
+    @Override
+    public String commandName() {
+        return HOME_WORLD_COMMAND;
     }
 
     @lombok.Value

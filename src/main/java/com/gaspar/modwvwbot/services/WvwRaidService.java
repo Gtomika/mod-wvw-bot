@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.SlashCommandHandler;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.misc.TimeUtils;
 import com.gaspar.modwvwbot.model.WvwRaid;
@@ -9,7 +10,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class WvwRaidService extends ListenerAdapter {
+public class WvwRaidService implements SlashCommandHandler {
 
     private static final String WVW_RAID_ADD_COMMAND = "/wvw_raid_add";
 
@@ -60,7 +60,7 @@ public class WvwRaidService extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+    public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
         if(event.getCommandString().startsWith(WVW_RAID_ADD_COMMAND)) {
             //auth
             if(authorizationService.isUnauthorizedToManageBot(event.getMember())) {
@@ -81,6 +81,21 @@ public class WvwRaidService extends ListenerAdapter {
             //not authorized command
             onWvwRaidListCommand(event);
         }
+    }
+
+    @Override
+    public String commandName() {
+        return null; //handles multiple commands
+    }
+
+    @Override
+    public boolean handlesMultipleCommands() {
+        return true;
+    }
+
+    @Override
+    public String[] commandNames() {
+        return new String[] {WVW_RAID_ADD_COMMAND, WVW_RAID_DELETE_COMMAND, WVW_RAID_LIST_COMMAND};
     }
 
     private void onWvwRaidAddCommand(SlashCommandInteractionEvent event) {

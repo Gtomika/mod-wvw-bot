@@ -21,6 +21,7 @@ public class SlashCommandDispatcher extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+        log.debug("Slash command interaction arrived, dispatching to appropriate service...");
         String command = getCommandName(event);
         for(var handler: commandHandlers.getHandlerList()) {
             if(handler.handlesMultipleCommands()) {

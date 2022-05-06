@@ -189,6 +189,21 @@ currencies are listed:
 This command can be called by anyone even in private messages, but it requires an API key. See the
 section below about API keys on how to add one.
 
+### /wvw_matchup
+
+Gets the state of the current WvW matchup. This is based on the home 
+world of the guild.
+
+To make this command work, first make sure to set the home world of the 
+guild using ```/home_world``` command (documentation above).
+
+Anyone can call this command.
+
+### /help
+
+Shows general information about the bot and its documentation. Anyone 
+can of course call this command.
+
 ### API keys
 
 Certain commands access the protected parts of the Gw2 API, and so require 

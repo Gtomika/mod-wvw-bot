@@ -4,6 +4,7 @@ server:
 com:
   gaspar:
     modwvwbot:
+      security_token: ${SECURITY_TOKEN}
       discord_token: ${BOT_DISCORD_TOKEN}
       watched_file_extensions: evtc, zevtc
       default_reminder_minutes: 15

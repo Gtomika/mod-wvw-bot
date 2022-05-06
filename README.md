@@ -58,7 +58,9 @@ the bot pick these files up and start processing them.
 ### /announcement_channel
 
 Used to mark a channel for announcement. The bot will create the configured announcements, 
-reminders on these channels.
+reminders on these channels. It's recommended to have at least one of these set, as without 
+it the bot won't communicate much of its reminders and messages. There is also 
+no reason to set multiple, since it will just result in duplicate messages.
 
 ```
 /announcement_channel [action] [text channel]
@@ -210,6 +212,8 @@ all commands work:
  - progression
 
 ### Elite Insights parser
+
+**NOT USED FOR NOW**. Don't have to do this!
 
 [Download](https://github.com/baaron4/GW2-Elite-Insights-Parser) and place elite insights parser into src/main/resources folder before attempting to 
 run the bot. The parser is used by the bot, however, it isn't checked into git.

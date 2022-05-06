@@ -44,12 +44,16 @@ public class LogUploadWatcherService extends ListenerAdapter {
             log.info("Message received in guild '{}', watched channel '{}' with attachments of interest. Starting async processing...",
                     event.getGuild().getName(), event.getChannel().getName());
             //reply that processing is started
+            event.getMessage().reply("Log fájlokat észleltem ezen a figyelt csatornán." +
+                    " Egyenlőre az ezeket feldolgozó funckió nem aktív.").queue();
+            /*
             event.getMessage().reply("Megkezdtem a log fájlok feldolgozását. Ahogy haladok, frissítem ezt " +
                             "az üzenetet. Ez eltarthat egy ideig...")
                     .mentionRepliedUser(false)
                     .queue(reply -> { //when discord reply was sent we start the processing
                         processFilesAsync(event, reply);
                     });
+             */
         }
     }
 

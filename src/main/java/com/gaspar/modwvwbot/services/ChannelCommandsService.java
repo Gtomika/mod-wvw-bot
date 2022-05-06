@@ -1,22 +1,27 @@
 package com.gaspar.modwvwbot.services;
 
+import com.gaspar.modwvwbot.controllers.dto.AnnouncementRequest;
+import com.gaspar.modwvwbot.controllers.dto.AnnouncementResponse;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.model.AnnouncementChannel;
 import com.gaspar.modwvwbot.model.WatchedChannel;
 import com.gaspar.modwvwbot.repository.AnnouncementChannelRepository;
 import com.gaspar.modwvwbot.repository.WatchedChannelRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Channel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -25,7 +30,6 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class ChannelCommandsService extends ListenerAdapter {
 
     private static final String WATCH_CHANNEL_COMMAND = "/watch_channel";
@@ -39,6 +43,17 @@ public class ChannelCommandsService extends ListenerAdapter {
     private final WatchedChannelRepository watchedChannelRepository;
     private final AnnouncementChannelRepository announcementChannelRepository;
     private final AuthorizationService authorizationService;
+    private final JDA jda;
+
+    public ChannelCommandsService(WatchedChannelRepository watchedChannelRepository,
+                                  AnnouncementChannelRepository announcementChannelRepository,
+                                  AuthorizationService authorizationService,
+                                  @Lazy JDA jda) {
+        this.watchedChannelRepository = watchedChannelRepository;
+        this.announcementChannelRepository = announcementChannelRepository;
+        this.authorizationService = authorizationService;
+        this.jda = jda;
+    }
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
@@ -237,5 +252,38 @@ public class ChannelCommandsService extends ListenerAdapter {
                 .stream()
                 .map(AnnouncementChannel::getChannelId)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Make announcements in guilds.
+     * @param request Request with details.
+     * @return Response with details.
+     */
+    public AnnouncementResponse publishAnnouncements(AnnouncementRequest request) {
+        log.info("Posting announcement according to request: {}", request);
+
+        int postChannelCount = 0, failChannelCount = 0;
+        Set<Long> postedGuildIds = new HashSet<>();
+        for(AnnouncementChannel channel: announcementChannelRepository.findAll()) {
+            if(request.getGuildIds() == null || request.getGuildIds().contains(channel.getGuildId())) {
+                //post on this channel
+                TextChannel textChannel = jda.getTextChannelById(channel.getChannelId());
+                if(textChannel != null && textChannel.canTalk()) {
+                    postChannelCount++;
+                    textChannel.sendMessage(request.getMessage()).queue();
+                } else {
+                    failChannelCount++;
+                }
+                postedGuildIds.add(channel.getChannelId());
+            }
+        }
+
+        var response = new AnnouncementResponse(
+                "Announcement successfully posted",
+                postChannelCount,
+                failChannelCount,
+                postedGuildIds.size());
+        log.info("Announcements posted, result is: {}", response);
+        return response;
     }
 }

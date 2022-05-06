@@ -1,10 +1,7 @@
 package com.gaspar.modwvwbot.misc;
 
 import com.gaspar.modwvwbot.model.WvwItemOrCurrency;
-import com.gaspar.modwvwbot.model.gw2api.Amount;
-import com.gaspar.modwvwbot.model.gw2api.BagResponse;
-import com.gaspar.modwvwbot.model.gw2api.InventoryResponse;
-import com.gaspar.modwvwbot.model.gw2api.ItemResponse;
+import com.gaspar.modwvwbot.model.gw2api.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -76,7 +73,7 @@ public abstract class AmountUtils {
     }
 
     /**
-     * Count items of interest in a array of items.
+     * Count items of interest in an array of items.
      * @param amounts Amount of items. This list will be modified.
      * @param items All items found. Searched for items of interest.
      */
@@ -88,6 +85,24 @@ public abstract class AmountUtils {
             for(var amount: amounts) {
                 if(item.getId() == amount.getItemOrCurrency().getId()) {
                     amount.increaseAmountBy(item.getAmount());
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Count currencies of interest in an array of currencies.
+     * @param amounts Amount of currencies. This list will be modified.
+     * @param currencies All currencies found. Searched for currencies of interest.
+     */
+    public static void countCurrencyArray(List<Amount> amounts, CurrencyResponse[] currencies) {
+        for(CurrencyResponse currency: currencies) {
+            if(currency == null) continue;
+            //is this a currency of interest?
+            for(var amount: amounts) {
+                if(currency.getId() == amount.getItemOrCurrency().getId()) {
+                    amount.increaseAmountBy(currency.getAmount());
                     break;
                 }
             }

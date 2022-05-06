@@ -38,6 +38,7 @@ public class JDAConfig {
     private final HomeWorldCommandService homeWorldCommandService;
     private final GeneralMessageResponderService generalMessageResponderService;
     private final WvwItemsService wvwItemsService;
+    private final WvwCurrenciesService wvwCurrenciesService;
 
     @Bean
     public JDA provideJDA() throws LoginException {
@@ -46,7 +47,7 @@ public class JDAConfig {
                 .addEventListeners(watchedChannelCommandService, logUploadWatcherService,
                         wvwRoleCommandService, wvwRaidService, privateMessageResponderService,
                         homeWorldCommandService, generalMessageResponderService,
-                        wvwItemsService)
+                        wvwItemsService, wvwCurrenciesService)
                 .setActivity(Activity.playing("WvW"))
                 .build();
     }

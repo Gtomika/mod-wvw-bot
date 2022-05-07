@@ -1,4 +1,4 @@
-package com.gaspar.modwvwbot.model.gw2api;
+package com.gaspar.modwvwbot.model;
 
 import com.gaspar.modwvwbot.model.WvwItemOrCurrency;
 import lombok.AllArgsConstructor;

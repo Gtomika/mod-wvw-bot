@@ -45,7 +45,7 @@ public class LogUploadWatcherService extends ListenerAdapter {
                     event.getGuild().getName(), event.getChannel().getName());
             //reply that processing is started
             event.getMessage().reply("Log fájlokat észleltem ezen a figyelt csatornán." +
-                    " Egyenlőre az ezeket feldolgozó funckió nem aktív.").queue();
+                    " Egyenlőre az ezeket feldolgozó funckió fejlesztés alatt áll.").queue();
             /*
             event.getMessage().reply("Megkezdtem a log fájlok feldolgozását. Ahogy haladok, frissítem ezt " +
                             "az üzenetet. Ez eltarthat egy ideig...")

@@ -1,6 +1,5 @@
 package com.gaspar.modwvwbot.model;
 
-import com.gaspar.modwvwbot.model.gw2api.Population;
 import lombok.*;
 
 import javax.persistence.*;

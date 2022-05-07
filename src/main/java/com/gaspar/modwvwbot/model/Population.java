@@ -1,4 +1,4 @@
-package com.gaspar.modwvwbot.model.gw2api;
+package com.gaspar.modwvwbot.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

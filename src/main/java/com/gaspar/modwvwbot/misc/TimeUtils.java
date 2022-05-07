@@ -93,15 +93,39 @@ public class TimeUtils {
      * @param minutes Valid minutes, so at least 1.
      * @return String like 1h30m, 15m and so on.
      */
-    public static String createDurationStringFromMinutes(int minutes) {
-        int hours = minutes / 60;
-        int minutesLeft = minutes - hours * 60;
+    public static String createDurationStringFromMinutes(long minutes) {
+        long days = minutes / (60 * 24);
+        long hours = minutes / 60;
+        long minutesLeft = minutes - hours * 60;
         StringBuilder builder = new StringBuilder();
+        if(days > 0) {
+            builder.append(days).append("d");
+        }
         if(hours > 0) {
             builder.append(hours).append("h");
         }
         if(minutesLeft > 0) {
             builder.append(minutesLeft).append("m");
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Convert minutes to hungarian duration string. Days, hours and minutes are supported.
+     */
+    public static String createHungarianDurationStringFromMinutes(long minutes) {
+        long days = minutes / (60 * 24);
+        long hours = (minutes - (days*60*24)) / 60;
+        long minutesLeft = minutes - ((hours * 60) + (days * 60 * 24));
+        StringBuilder builder = new StringBuilder();
+        if(days > 0) {
+            builder.append(days).append(" nap, ");
+        }
+        if(hours > 0) {
+            builder.append(hours).append(" óra, ");
+        }
+        if(minutesLeft > 0) {
+            builder.append(minutesLeft).append(" perc");
         }
         return builder.toString();
     }
@@ -129,6 +153,17 @@ public class TimeUtils {
         }
 
         String minutes = String.format("%2s", roundedMinute).replaceAll(" ", "0");
+        return day + "-" + hours + ":" + minutes;
+    }
+
+    /**
+     * Convert date to time string, no roundings.
+     */
+    public static String getTimeString(LocalDateTime localDateTime) {
+        String day = localDateTime.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.UK);
+        String hours = String.format("%2s", localDateTime.getHour()).replaceAll(" ", "0");
+
+        String minutes = String.format("%2s", localDateTime.getMinute()).replaceAll(" ", "0");
         return day + "-" + hours + ":" + minutes;
     }
 

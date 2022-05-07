@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.misc;
 
+import com.gaspar.modwvwbot.model.Amount;
 import com.gaspar.modwvwbot.model.WvwItemOrCurrency;
 import com.gaspar.modwvwbot.model.gw2api.*;
 

@@ -27,7 +27,7 @@ public class HelpCommandService implements SlashCommandHandler {
         message.append(" - A fejlesztőm: ").append(dev);
         String docuEmote = EmoteUtils.defaultEmote("bookmark_tabs");
         message.append(" - A dokumentációmért ").append(docuEmote).append(" és forráskódomért lásd:\n")
-                .append("   ").append(documentationUrl).append("\n");
+                .append("   <").append(documentationUrl).append(">\n");
         String en = EmoteUtils.defaultEmote("regional_indicator_e") + " " + EmoteUtils.defaultEmote("regional_indicator_n");
         message.append(" - Figyelem, ezek angolul érhetőek el! ").append(en).append("\n");
         message.append(" - Ha hibát fedeztél fel, vagy javaslatod van, kérlek írj a készítőmnek!");

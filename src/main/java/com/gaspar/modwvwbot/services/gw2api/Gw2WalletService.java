@@ -3,7 +3,7 @@ package com.gaspar.modwvwbot.services.gw2api;
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.misc.AmountUtils;
-import com.gaspar.modwvwbot.model.gw2api.Amount;
+import com.gaspar.modwvwbot.model.Amount;
 import com.gaspar.modwvwbot.model.gw2api.CurrencyResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

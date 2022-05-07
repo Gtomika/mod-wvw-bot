@@ -6,7 +6,7 @@ import com.gaspar.modwvwbot.exception.HomeWorldNotFoundException;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.model.HomeWorld;
 import com.gaspar.modwvwbot.model.gw2api.HomeWorldResponse;
-import com.gaspar.modwvwbot.model.gw2api.Population;
+import com.gaspar.modwvwbot.model.Population;
 import com.gaspar.modwvwbot.repository.HomeWorldRepository;
 import com.gaspar.modwvwbot.services.gw2api.Gw2WorldService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * Handles the /home_world command.
@@ -159,6 +161,10 @@ public class HomeWorldCommandService implements SlashCommandHandler {
             homeWorldRepository.save(newHomeWorld);
         }
         event.reply("A guild WvW világa mostantól **" + homeWorldResponse.getName() + "**.").queue();
+    }
+
+    public Optional<HomeWorld> getGuildHomeWorld(long guildId) {
+        return homeWorldRepository.findByGuildId(guildId);
     }
 
     /**

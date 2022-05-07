@@ -181,7 +181,7 @@ public class ApiKeyService {
         String key = EmoteUtils.defaultEmote("key");
         return "Még nem adtál nekem egy API kulcsot " + key + " ! Erre szükségem van, hogy " +
                 "le tudjam kérni az adatokat a Gw2 szervereiről.\n" +
-                " - API kulcsot itt tudsz létrehozni: " + apiKeyUrl + "\n" +
+                " - API kulcsot itt tudsz létrehozni: <" + apiKeyUrl + ">\n" +
                 " - Add hozzá ezeket az engedélyeket: " + permissions + "\n" +
                 " - Küld el nekem a kulcsot **privát** üzenetben így: 'modwvwbot-apikey [kulcs]'";
     }

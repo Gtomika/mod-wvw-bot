@@ -1,0 +1,15 @@
+{
+  "type": 1,
+  "name": "wvw_raid_delete",
+  "application_id": 972523867270705172,
+  "description": "WvW raid esemény törlése",
+  "dm_permission": false,
+  "options": [
+    {
+      "name": "time",
+      "description": "A kezdés ideje, pl: Friday-20:00",
+      "required": true,
+      "type": 3
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "type": 1,
+  "name": "help",
+  "application_id": 972523867270705172,
+  "description": "Bot információk és dokumentáció.",
+  "dm_permission": true,
+  "options": []
+}

@@ -254,6 +254,13 @@ Token can be set using environmental variable ```SECURITY_TOKEN```.
 
 Response is *JSON* with info about how many channels and guilds were affected.
 
+### Bot variations
+
+There are 2 discord bots that run the code:
+ - *Mod WvW Bot*: Live version of the bot which supports any sever with global commands.
+ - *Mod WvW Bot \[DEV]*: The development version which supports only the test server 
+with server specific commands.
+
 ### Elite Insights parser
 
 **NOT USED FOR NOW**. Don't have to do this!

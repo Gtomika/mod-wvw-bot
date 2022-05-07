@@ -1,0 +1,8 @@
+{
+  "type": 1,
+  "name": "wvw_raid_list",
+  "application_id": 972523867270705172,
+  "description": "WvW raid események listázása",
+  "dm_permission": false,
+  "options": []
+}

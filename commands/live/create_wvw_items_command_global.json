@@ -1,0 +1,8 @@
+{
+  "type": 1,
+  "name": "wvw_items",
+  "application_id": 972523867270705172,
+  "description": "A WvW-s tárgyaid listázása.",
+  "dm_permission": true,
+  "options": []
+}

@@ -1,0 +1,8 @@
+{
+  "type": 1,
+  "name": "wvw_currencies",
+  "application_id": 972523867270705172,
+  "description": "A WvW-s fizetőeszközeid listázása.",
+  "dm_permission": true,
+  "options": []
+}

@@ -5,6 +5,7 @@ import com.gaspar.modwvwbot.exception.HomeWorldNotFoundException;
 import com.gaspar.modwvwbot.model.gw2api.HomeWorldResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -14,14 +15,14 @@ import org.springframework.web.client.RestTemplate;
  * Queries GW2 API: /worlds
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class Gw2WorldService {
 
-    @Value("${com.gaspar.modwvwbot.gw2_api_url}")
-    private String apiBaseUrl;
-
     private final RestTemplate restTemplate;
+
+    public Gw2WorldService(@Qualifier("gw2api") RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     /**
      * Query the API for a home world.
@@ -31,7 +32,7 @@ public class Gw2WorldService {
      * @throws HomeWorldNotFoundException If this world was not found.
      */
     public HomeWorldResponse fetchHomeWorldByName(String name) throws Gw2ApiException, HomeWorldNotFoundException {
-        String getAllWorldsEndpoint = apiBaseUrl + "/v2/worlds?ids=all";
+        String getAllWorldsEndpoint = "/v2/worlds?ids=all";
         log.debug("GW2 API endpoint for fetching all worlds is: {}", getAllWorldsEndpoint);
 
         var response = restTemplate.getForEntity(getAllWorldsEndpoint, HomeWorldResponse[].class);
@@ -53,7 +54,7 @@ public class Gw2WorldService {
      * @throws Gw2ApiException If the API failed to respond.
      */
     public HomeWorldResponse fetchHomeWorldById(@NonNull Integer id) throws Gw2ApiException {
-        String getByIdEndpoint = apiBaseUrl + "/v2/worlds/" + id;
+        String getByIdEndpoint = "/v2/worlds/" + id;
         log.debug("GW2 API endpoint for getting world with id '{}' is: {}", id, getByIdEndpoint);
 
         var response = restTemplate.getForEntity(getByIdEndpoint, HomeWorldResponse.class);

@@ -2,12 +2,11 @@ package com.gaspar.modwvwbot.services.gw2api;
 
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.model.matchup.WvwColor;
-import com.gaspar.modwvwbot.model.matchup.WvwMatchupResponse;
 import com.gaspar.modwvwbot.model.matchup.WvwMatchupReport;
+import com.gaspar.modwvwbot.model.matchup.WvwMatchupResponse;
 import com.gaspar.modwvwbot.model.matchup.WvwMatchupSide;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,15 +19,16 @@ import java.util.stream.Collectors;
  * Queries Gw2 API wvw endpoint.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class Gw2WvwService {
 
-    @Value("${com.gaspar.modwvwbot.gw2_api_url}")
-    private String apiBaseUrl;
-
     private final RestTemplate restTemplate;
     private final Gw2WorldService gw2WorldService;
+
+    public Gw2WvwService(@Qualifier("gw2api") RestTemplate restTemplate, Gw2WorldService gw2WorldService) {
+        this.restTemplate = restTemplate;
+        this.gw2WorldService = gw2WorldService;
+    }
 
     /**
      * Creates a {@link WvwMatchupReport} of the current matchup of a world.
@@ -37,7 +37,7 @@ public class Gw2WvwService {
      * @throws Gw2ApiException If the API failed to answer.
      */
     public WvwMatchupReport createMatchupReport(int homeWorldId) throws Gw2ApiException {
-        String matchupUrl = apiBaseUrl + "/v2/wvw/matches?world=" + homeWorldId;
+        String matchupUrl = "/v2/wvw/matches?world=" + homeWorldId;
         log.debug("Getting Wvw matchup report from: {}", matchupUrl);
         var response = restTemplate.getForEntity(matchupUrl, WvwMatchupResponse.class);
         if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");

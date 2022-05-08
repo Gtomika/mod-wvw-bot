@@ -131,6 +131,22 @@ public class TimeUtils {
     }
 
     /**
+     * Convert seconds to hungarian duration. Minutes and seconds are supported.
+     */
+    public static String createHungarianDurationStringFromSeconds(long secondsTotal) {
+        long minutes = secondsTotal / 60;
+        long seconds = secondsTotal - minutes*60;
+        StringBuilder builder = new StringBuilder();
+        if(minutes > 0) {
+            builder.append(minutes).append(" perc, ");
+        }
+        if(seconds > 0) {
+            builder.append(seconds).append(" másodperc");
+        }
+        return builder.toString();
+    }
+
+    /**
      * See {@link #getTimeStringRoundedToFiveMinutes(LocalDateTime)}, but with the
      * current time.
      */

@@ -9,6 +9,7 @@ import com.gaspar.modwvwbot.model.gw2api.InventoryResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,18 +20,19 @@ import java.util.List;
  * Service that performs Gw2 API calls to the /inventory endpoint
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class Gw2InventoryService {
-
-    @Value("${com.gaspar.modwvwbot.gw2_api_url}")
-    private String apiBaseUrl;
 
     @Value("${com.gaspar.modwvwbot.emote_ids.loading}")
     private long loadingId;
 
     private final RestTemplate restTemplate;
     private final Gw2CharacterService gw2CharacterService;
+
+    public Gw2InventoryService(@Qualifier("gw2api") RestTemplate restTemplate, Gw2CharacterService gw2CharacterService) {
+        this.restTemplate = restTemplate;
+        this.gw2CharacterService = gw2CharacterService;
+    }
 
     /**
      * Fetches all inventories of characters and counts how many items of interest are in them.
@@ -68,7 +70,7 @@ public class Gw2InventoryService {
      */
     private void countItemsInInventory(String apiKey, String name, List<Amount> amounts)
             throws Gw2ApiException, UnauthorizedException {
-        String getInventoryEndpoint = apiBaseUrl + "/v2/characters/%s/inventory?access_token=" + apiKey;
+        String getInventoryEndpoint = "/v2/characters/%s/inventory?access_token=" + apiKey;
         String urlWithName = String.format(getInventoryEndpoint, name);
         var response = restTemplate.getForEntity(urlWithName, InventoryResponse.class);
         if(response.getBody() == null) throw new Gw2ApiException("No response body");

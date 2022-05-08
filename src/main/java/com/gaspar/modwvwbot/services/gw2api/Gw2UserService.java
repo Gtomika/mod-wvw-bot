@@ -5,6 +5,7 @@ import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.model.gw2api.Gw2User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,14 +16,14 @@ import org.springframework.web.client.RestTemplate;
  * API key is correct.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class Gw2UserService {
 
-    @Value("${com.gaspar.modwvwbot.gw2_api_url}")
-    private String apiBaseUrl;
-
     private final RestTemplate restTemplate;
+
+    public Gw2UserService(@Qualifier("gw2api") RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     /**
      * Get username of player.
@@ -32,7 +33,7 @@ public class Gw2UserService {
      * @throws UnauthorizedException If api key is invalid.
      */
     public Gw2User fetchGw2User(String apiKey) throws Gw2ApiException, UnauthorizedException {
-        String getUserEndpoint = apiBaseUrl + "/v2/account";
+        String getUserEndpoint = "/v2/account";
         log.debug("Fetching Gw2 account data from: " + getUserEndpoint);
         getUserEndpoint += "?access_token=" + apiKey;
         var response = restTemplate.getForEntity(getUserEndpoint, Gw2User.class);

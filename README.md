@@ -139,6 +139,8 @@ Get a list of scheduled wvw raids in the server, including start times, duration
 
 **Note:** everyone can invoke this command.
 
+![screenshot](/images/screenshot_wvw_raids.png)
+
 ### /home_world
 
 Set (or get) the home server of the guild. This is required to use commands 
@@ -163,6 +165,8 @@ announcement channels if:
 
 This can't be disabled, but it happens very rarely.
 
+![screenshot](/images/screenshot_home_world.png)
+
 ### /wvw_items
 
 Fetches how many WvW related items and are present 
@@ -177,6 +181,8 @@ on your account. These are the items that are currently listed:
 This command can be called by anyone even in private messages, but it requires an API key. See the 
 section below about API keys on how to add one.
 
+![screenshot](/images/screenshot_wvw_items.png)
+
 ### /wvw_currencies
 
 Fetches how many WvW related currencies you have in your wallet. These 
@@ -189,6 +195,8 @@ currencies are listed:
 This command can be called by anyone even in private messages, but it requires an API key. See the
 section below about API keys on how to add one.
 
+![screenshot](/images/screenshot_wvw_currencies.png)
+
 ### /wvw_matchup
 
 Gets the state of the current WvW matchup. This is based on the home 
@@ -199,10 +207,14 @@ guild using ```/home_world``` command (documentation above).
 
 Anyone can call this command.
 
+![screenshot](/images/screenshot_wvw_matchup.png)
+
 ### /help
 
 Shows general information about the bot and its documentation. Anyone 
 can of course call this command.
+
+![screenshot](/images/screenshot_help.png)
 
 ### API keys
 
@@ -225,6 +237,19 @@ all commands work:
  - characters
  - wallet
  - progression
+
+### Log processing
+
+If the bot detects log files (EVTC, ZEVTC) uploaded to a watched channel (```/watched_channel```), then 
+it will process these logs.
+
+ - Files are uploaded to dps.report and a permalink is created for each.
+ - Detailed JSON of the Wvw fight is fetched from dps.report.
+ - JSON is cleaned of all unnecessary data (see README in folder *test_logs*).
+ - Cleaned JSON and permalinks for every log file are posted in the same channel.
+
+![screenshot](/images/screenshot_log_progress.png)
+![screenshot](/images/screenshot_log_done.png)
 
 ### Announcements using HTTP POST
 

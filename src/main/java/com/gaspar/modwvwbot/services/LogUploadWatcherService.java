@@ -11,14 +11,18 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 /**
  * Service that monitors the watched channels for file uploads with the correct extension. Only the watched channels
@@ -113,18 +117,21 @@ public class LogUploadWatcherService extends ListenerAdapter {
                 for(var future: futures) {
                     results.add(future.get());
                 }
+                Consumer<Message> onMessageSent = message -> {
+                    //delete JSONs after message is sent
+                    for(var task: tasks) {
+                        task.deleteJsonFile();
+                    }
+                };
                 //send results back to discord
                 sendResponseToDiscord(
                         event.getAuthor().getIdLong(),
                         event.getTextChannel(),
                         reply,
                         results,
-                        System.currentTimeMillis() - startTime
+                        System.currentTimeMillis() - startTime,
+                        onMessageSent
                 );
-                //delete JSONs
-                for(var task: tasks) {
-                    task.deleteJsonFile();
-                }
             } else {
                 //timed out
                 log.warn("Timed out while waiting for the tasks to finish.");
@@ -147,19 +154,33 @@ public class LogUploadWatcherService extends ListenerAdapter {
      * @param results Results of {@link LogProcessorTask}s.
      * @param durationMillis Duration of processing in milliseconds.
      */
-    private void sendResponseToDiscord(long userId, TextChannel logChannel, Message reply, List<LogProcessingResult> results, long durationMillis) {
+    private void sendResponseToDiscord(
+            long userId,
+            TextChannel logChannel,
+            Message reply,
+            List<LogProcessingResult> results,
+            long durationMillis,
+            Consumer<Message> onMessageSent
+    ) {
         var message = new StringBuilder();
         String doneEmote = EmoteUtils.defaultEmote("white_check_mark");
         String userWhoUploaded = "<@" + userId + ">";
+
+        var files = new ArrayList<File>();
+
         message.append("Hé, ").append(userWhoUploaded).append("!\n");
-        message.append("Végeztem ").append(results.size()).append(" log feldolgozásával ")
+        message.append("Befejeztem ").append(results.size()).append(" log feldolgozását ")
                 .append(TimeUtils.createHungarianDurationStringFromSeconds(durationMillis/1000))
                 .append(" alatt ").append(doneEmote).append("\n\n");
         for(var result: results) {
             message.append("*").append(result.getOriginalFileName()).append("* eredménye:\n");
             if(result.isSuccess()) {
                 message.append(" - Dps Report permalink: <").append(result.getPermalink()).append(">\n");
-                message.append(" - Tisztított JSON link: Nincs implementálva.\n");
+                String compression = calculateCompressionPercentage(result.getOriginalSize(), result.getCleanedSize());
+                message.append(" - Tisztított JSON: *").append(result.getNameOfCleanedJson()).append("* (az eredeti méret ").append(compression)
+                        .append("%-a, ").append(result.getOriginalSize()).append(" kB -> ")
+                        .append(result.getCleanedSize()).append(" kB)\n");
+                files.add(result.getPathToCleanedJson().toFile());
             } else {
                 String fail = EmoteUtils.defaultEmote("no_entry_sign");
                 message.append(" - Hiba történt ").append(fail).append("\n");
@@ -169,9 +190,18 @@ public class LogUploadWatcherService extends ListenerAdapter {
         //delete replay and send message with mention
         reply.delete().queue();
         if(logChannel.canTalk()) {
-            logChannel.sendMessage(message.toString()).queue();
+            MessageAction messageAction = logChannel.sendMessage(message.toString());
+            for(File file: files) {
+                messageAction = messageAction.addFile(file);
+            }
+            messageAction.queue(onMessageSent);
         } else {
             log.warn("Can't talk on channel '{}' where logs were uploaded. Failed to upload results.", logChannel.getName());
         }
+    }
+
+    private String calculateCompressionPercentage(long original, long reduced) {
+        float compression = (float)reduced / original;
+        return new DecimalFormat("0.00").format(compression);
     }
 }

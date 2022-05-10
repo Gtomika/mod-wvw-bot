@@ -1,8 +1,10 @@
 package com.gaspar.modwvwbot.misc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gaspar.modwvwbot.exception.DpsReportApiException;
 import com.gaspar.modwvwbot.model.LogProcessingResult;
 import com.gaspar.modwvwbot.model.dpsreportapi.DpsReportResponse;
+import com.gaspar.modwvwbot.model.jsonclean.CleanedWvwLog;
 import com.gaspar.modwvwbot.services.dpsreportapi.DpsReportService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,7 +44,13 @@ public class LogProcessorTask implements Callable<LogProcessingResult> {
      * Path to created JSON file. This is null at the beginning as it is generated later.
      */
     @Nullable
-    private Path jsonPath;
+    private Path cleanedJsonPath;
+
+    /**
+     * Name of the cleaned JSON file. This is null at the beginning as it is generated later.
+     */
+    @Nullable
+    private String cleanedJsonName;
 
     /**
      * Downloads and processes the file. Then, the result is written to a file and returned.
@@ -66,33 +74,34 @@ public class LogProcessorTask implements Callable<LogProcessingResult> {
             byte[] jsonBytes = dpsReportResponse.getLogJson().getBytes(StandardCharsets.UTF_8);
             log.debug("File '{}' was uploaded to dps.report with permalink '{}'. JSON downloaded, it is '{}' bytes long.",
                     attachment.getFileName(), dpsReportResponse.getPermalink(), jsonBytes.length);
-            //save JSON to a file
-            jsonPath = Paths.get(System.getProperty("java.io.tmpdir"), fileNameWithoutExtension(attachment.getFileName()) + ".json");
+            //clean json
+            var mapper = new ObjectMapper();
+            CleanedWvwLog cleanedWvwLog = mapper.readValue(jsonBytes, CleanedWvwLog.class);
+            cleanedJsonName = fileNameWithoutExtension(attachment.getFileName()) + "_cleaned.json";
+            cleanedJsonPath = Paths.get(System.getProperty("java.io.tmpdir"), cleanedJsonName);
+            Files.deleteIfExists(cleanedJsonPath);
+            Files.createFile(cleanedJsonPath);
+            byte[] cleanedJsonBytes = mapper.writeValueAsString(cleanedWvwLog).getBytes(StandardCharsets.UTF_8);
+            Files.write(cleanedJsonPath, cleanedJsonBytes);
 
             return LogProcessingResult.builder()
                     .success(true)
                     .originalFileName(attachment.getFileName())
                     .permalink(dpsReportResponse.getPermalink())
-                    .pathToLogJson(jsonPath)
+                    .pathToCleanedJson(cleanedJsonPath)
+                    .nameOfCleanedJson(cleanedJsonName)
+                    .originalSize(jsonBytes.length)
+                    .cleanedSize(cleanedJsonBytes.length)
                     .build();
         } catch (IOException e) {
             log.error("Failed to process file '{}' because of IO exception.", attachment.getFileName(), e);
-            return LogProcessingResult.builder()
-                    .success(false)
-                    .originalFileName(attachment.getFileName())
-                    .build();
+            return LogProcessingResult.builder().success(false).originalFileName(attachment.getFileName()).build();
         } catch (ExecutionException | InterruptedException e) {
             log.error("Interrupted while processing log file '{}'.", attachment.getFileName(), e);
-            return LogProcessingResult.builder()
-                    .success(false)
-                    .originalFileName(attachment.getFileName())
-                    .build();
+            return LogProcessingResult.builder().success(false).originalFileName(attachment.getFileName()).build();
         } catch (DpsReportApiException e) {
             log.error("Failed to process log file '{}' because dps.report API returned error.", attachment.getFileName(), e);
-            return LogProcessingResult.builder()
-                    .success(false)
-                    .originalFileName(attachment.getFileName())
-                    .build();
+            return LogProcessingResult.builder().success(false).originalFileName(attachment.getFileName()).build();
         }
         finally {
             //delete temp log file in the end (this is NOT the JSON!)
@@ -114,12 +123,12 @@ public class LogProcessorTask implements Callable<LogProcessingResult> {
      * Deletes the resulting JSON file. Call this AFTER it was already uploaded to discord.
      */
     public void deleteJsonFile() {
-        if(jsonPath != null) {
+        if(cleanedJsonPath != null) {
             try {
-                Files.deleteIfExists(jsonPath);
-                log.debug("Deleted JSON file at: '{}'", jsonPath.toFile().getAbsolutePath());
+                Files.deleteIfExists(cleanedJsonPath);
+                log.debug("Deleted JSON file at: '{}'", cleanedJsonPath.toFile().getAbsolutePath());
             } catch (IOException e) {
-                log.warn("Failed to delete JSON at '{}'", jsonPath.toFile().getAbsolutePath());
+                log.warn("Failed to delete JSON at '{}'", cleanedJsonPath.toFile().getAbsolutePath());
             }
         }
     }

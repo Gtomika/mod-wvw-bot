@@ -71,12 +71,18 @@ public class LogProcessorTask implements Callable<LogProcessingResult> {
             //upload log and get json from dps.report
             log.debug("Uploading file '{}' to dps.report, creating permalink and JSON.", attachment.getFileName());
             DpsReportResponse dpsReportResponse = dpsReportService.getLogJson(tempFilePath.toFile());
+
+            //extract targets to be used later
+            var targets = WvwLogUtils.extractTargets(dpsReportResponse.getLogJson());
             byte[] jsonBytes = dpsReportResponse.getLogJson().getBytes(StandardCharsets.UTF_8);
             log.debug("File '{}' was uploaded to dps.report with permalink '{}'. JSON downloaded, it is '{}' bytes long.",
                     attachment.getFileName(), dpsReportResponse.getPermalink(), jsonBytes.length);
             //clean json
             var mapper = new ObjectMapper();
             CleanedWvwLog cleanedWvwLog = mapper.readValue(jsonBytes, CleanedWvwLog.class);
+            //add targets
+            cleanedWvwLog.setTargets(targets);
+
             cleanedJsonName = fileNameWithoutExtension(attachment.getFileName()) + "_cleaned.json";
             cleanedJsonPath = Paths.get(System.getProperty("java.io.tmpdir"), cleanedJsonName);
             Files.deleteIfExists(cleanedJsonPath);

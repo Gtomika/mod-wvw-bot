@@ -2,6 +2,12 @@
 
 Discord bot to manage Guild Wars 2 WvW related stuff on a discord server.
 
+Invite link:
+
+```
+https://discord.com/api/oauth2/authorize?client_id=972523867270705172&permissions=277025704000&scope=bot%20applications.commands
+```
+
 ## Slash commands
 
 These commands use discords slash command system, so there is support in the client for them, such as 

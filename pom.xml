@@ -61,6 +61,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>io.logz.log4j2</groupId>
+			<artifactId>logzio-log4j2-appender</artifactId>
+			<version>1.0.15</version>
+		</dependency>
+
 		<!-- Discord API java wrapper without audio support. -->
 		<dependency>
 			<groupId>net.dv8tion</groupId>

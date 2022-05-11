@@ -178,8 +178,8 @@ public class LogUploadWatcherService extends ListenerAdapter {
                 message.append(" - Dps Report permalink: <").append(result.getPermalink()).append(">\n");
                 String compression = calculateCompressionPercentage(result.getOriginalSize(), result.getCleanedSize());
                 message.append(" - Tisztított JSON: *").append(result.getNameOfCleanedJson()).append("* (az eredeti méret ").append(compression)
-                        .append("%-a, ").append(result.getOriginalSize()).append(" kB -> ")
-                        .append(result.getCleanedSize()).append(" kB)\n");
+                        .append("%-a, ").append(result.getOriginalSize()/1000).append(" kB -> ")
+                        .append(result.getCleanedSize()/1000).append(" kB)\n");
                 files.add(result.getPathToCleanedJson().toFile());
             } else {
                 String fail = EmoteUtils.defaultEmote("no_entry_sign");

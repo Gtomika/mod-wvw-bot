@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * This is the model class of the cleaned JSON log files, which contain
  * only the fields necessary for the Power BI data visualization.
@@ -25,6 +27,8 @@ public class CleanedWvwLog {
     private String arcVersion;
     @JsonProperty("gW2Build")
     private String gW2Build;
+    private String language;
+    private int languageID;
     private String recordedBy;
     private String timeStart;
     private String timeEnd;
@@ -35,7 +39,7 @@ public class CleanedWvwLog {
     @JsonProperty("isCM")
     private boolean isCM;
     //targets
-    private Target[] targets;
+    private List<Target> targets;
     //players
     private Player[] players;
     //other relatively small attributes that are to be kept in full

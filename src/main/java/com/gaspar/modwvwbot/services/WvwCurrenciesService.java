@@ -45,7 +45,7 @@ public class WvwCurrenciesService implements SlashCommandHandler {
 
     @Override
     public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
-        log.info("/wvw_currencies command sent by '{}'. Starting currency fetching...", event.getUser().getName());
+        log.info("/wvw_currencies command sent by '{}'. Checking for API key...", event.getUser().getName());
         var apiKey = apiKeyService.getApiKeyByUserId(event.getUser().getIdLong());
         if(apiKey.isPresent()) {
             //this user already added an API key

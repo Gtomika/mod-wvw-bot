@@ -31,7 +31,6 @@ public class JDAConfig {
      */
     private final List<GatewayIntent> gatewayIntents = List.of(GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES);
 
-    private final LogUploadWatcherService logUploadWatcherService;
     private final PrivateMessageResponderService privateMessageResponderService;
     private final GeneralMessageResponderService generalMessageResponderService;
     private final SlashCommandDispatcher slashCommandDispatcher;
@@ -40,8 +39,7 @@ public class JDAConfig {
     public JDA provideJDA() throws LoginException {
         log.info("Initializing JDA with the following gateway intents: {}", gatewayIntents);
         return JDABuilder.create(discordToken, gatewayIntents)
-                .addEventListeners(logUploadWatcherService,
-                        privateMessageResponderService,
+                .addEventListeners(privateMessageResponderService,
                         generalMessageResponderService,
                         slashCommandDispatcher)
                 .setActivity(Activity.playing("WvW"))

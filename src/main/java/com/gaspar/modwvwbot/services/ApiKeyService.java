@@ -4,9 +4,9 @@ import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.model.ApiKey;
-import com.gaspar.modwvwbot.model.gw2api.Gw2User;
+import com.gaspar.modwvwbot.model.gw2api.Gw2Account;
 import com.gaspar.modwvwbot.repository.ApiKeyRepository;
-import com.gaspar.modwvwbot.services.gw2api.Gw2UserService;
+import com.gaspar.modwvwbot.services.gw2api.Gw2AccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Message;
@@ -51,7 +51,7 @@ public class ApiKeyService {
     private Pattern apiKeyPattern;
 
     private final ApiKeyRepository apiKeyRepository;
-    private final Gw2UserService gw2UserService;
+    private final Gw2AccountService gw2UserService;
 
     @PostConstruct
     public void init() {
@@ -152,7 +152,7 @@ public class ApiKeyService {
      * @param keyString Key string, guaranteed to be valid and confirmed.
      * @param gw2User GW2 account data.
      */
-    private void saveApiKey(Message message, MessageReceivedEvent event, String keyString, Gw2User gw2User) {
+    private void saveApiKey(Message message, MessageReceivedEvent event, String keyString, Gw2Account gw2User) {
         String keyEmote = EmoteUtils.defaultEmote("key");
         long userId = event.getAuthor().getIdLong();
         var optional = apiKeyRepository.findByUserId(userId);

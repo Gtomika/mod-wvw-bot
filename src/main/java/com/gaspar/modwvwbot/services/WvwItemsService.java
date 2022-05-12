@@ -53,7 +53,7 @@ public class WvwItemsService implements SlashCommandHandler {
 
     @Override
     public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
-        log.info("/wvw_items command sent by '{}'. Starting item fetching...", event.getUser().getName());
+        log.info("/wvw_items command sent by '{}'. Checking for API key...", event.getUser().getName());
         var apiKey = apiKeyService.getApiKeyByUserId(event.getUser().getIdLong());
         if(apiKey.isPresent()) {
             //this user already added an API key

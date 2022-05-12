@@ -20,11 +20,7 @@ public class RestTemplateConfig {
     @Value("${com.gaspar.modwvwbot.gw2_api_url}")
     private String gw2ApiBaseUrl;
 
-    @Value("${com.gaspar.modwvwbot.dps_report_api_url}")
-    private String dpsReportApiBaseUrl;
-
     private final Gw2ApiErrorHandler gw2ApiErrorHandler;
-    private final DpsReportApiErrorHandler dpsReportApiErrorHandler;
 
     @Bean
     @Qualifier("gw2api")
@@ -32,16 +28,6 @@ public class RestTemplateConfig {
         return new RestTemplateBuilder()
                 .errorHandler(gw2ApiErrorHandler)
                 .rootUri(gw2ApiBaseUrl)
-                .build();
-    }
-
-    @Bean
-    @Qualifier("dpsreport")
-    public RestTemplate provideDpsReportRestTemplate() {
-        return new RestTemplateBuilder()
-                .errorHandler(dpsReportApiErrorHandler)
-                .rootUri(dpsReportApiBaseUrl)
-                .setReadTimeout(Duration.ofMinutes(10))
                 .build();
     }
 

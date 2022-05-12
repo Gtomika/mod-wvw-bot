@@ -16,10 +16,98 @@ name autocomplete.
 **Permissions**: At first, only server admins can use these commands. Then, you can add more roles 
 who can use the bot, with the ```/manager_role``` command (documentation below).
 
+### API keys
+
+Certain commands access the protected parts of the Gw2 API, and so require
+an API key. Users can add their keys by sending a **private** message
+to the bot in the following format:
+
+```
+modwvwbot-apikey [API key here]
+```
+
+The bot will check and test the key, and respond accordingly. If the response
+is successful, the key is saved. It can later be updated with the
+same command.
+
+**Note**: At least the following API key permissions are needed to make
+all commands work:
+- account
+- inventories
+- characters
+- wallet
+- progression
+- unlocks
+
+### /wvw_items
+
+Fetches how many WvW related items and are present
+on your account. These are the items that are currently listed:
+
+- Memories of Battle
+- Emblems of the Conqueror
+- Emblems of the Avenger
+- Legendary Spikes
+- Gifts of Battle
+
+This command can be called by anyone even in private messages, but it requires an API key. See the
+section about API keys on how to add one.
+
+![screenshot](/images/screenshot_wvw_items.png)
+
+### /wvw_currencies
+
+Fetches how many WvW related currencies you have in your wallet. These
+currencies are listed:
+
+- Skirmish claim tickets.
+- Badges of honor
+- Proof of heroics (all kind)
+
+This command can be called by anyone even in private messages, but it requires an API key. See the
+section about API keys on how to add one.
+
+![screenshot](/images/screenshot_wvw_currencies.png)
+
+### /wvw_matchup
+
+Gets the state of the current WvW matchup. This is based on the home
+world of the guild.
+
+To make this command work, first make sure to set the home world of the
+guild using ```/home_world``` command. Anyone can call this command.
+
+![screenshot](/images/screenshot_wvw_matchup.png)
+
+### /wvw_legendaries
+
+Displays the Wvw related legendary items on your account. Can be used by anyone, even in private
+messages. Requires an API key. See the section about API keys on how to add one.
+
+Due to technical difficulties, the legendary Wvw armor is not listed, only these items are:
+
+- Conflux (ring)
+- Warbringer (backpack)
+
+![screenshot](/images/screenshot_wvw_legendaries.png)
+
+### /wvw_rank
+
+The bot will display your WvW rank and some additional information along with it. Can be used by anyone, even in private
+messages. Requires an API key. See the section about API keys on how to add one.
+
+![screenshot](/images/screenshot_wvw_rank.png)
+
+### /help
+
+Shows general information about the bot and its documentation. Anyone can of course call this command.
+
+![screenshot](/images/screenshot_help.png)
+
 ### /wvw_role
 
 Used to mark a role on the server as "WvW-related". These roles will get mentions in announcements made 
-by the bot. Discord client will offer autocomplete for actions and roles. Syntax:
+by the bot. Syntax:
 
 ```
 /wvw_role [action] [role]
@@ -173,90 +261,6 @@ This can't be disabled, but it happens very rarely.
 
 ![screenshot](/images/screenshot_home_world.png)
 
-### /wvw_items
-
-Fetches how many WvW related items and are present 
-on your account. These are the items that are currently listed:
-
- - Memories of Battle
- - Emblems of the Conqueror
- - Emblems of the Avenger
- - Legendary Spikes
- - Gifts of Battle
-
-This command can be called by anyone even in private messages, but it requires an API key. See the 
-section below about API keys on how to add one.
-
-![screenshot](/images/screenshot_wvw_items.png)
-
-### /wvw_currencies
-
-Fetches how many WvW related currencies you have in your wallet. These 
-currencies are listed:
-
- - Skirmish claim tickets.
- - Badges of honor
- - Proof of heroics (all kind)
-
-This command can be called by anyone even in private messages, but it requires an API key. See the
-section below about API keys on how to add one.
-
-![screenshot](/images/screenshot_wvw_currencies.png)
-
-### /wvw_matchup
-
-Gets the state of the current WvW matchup. This is based on the home 
-world of the guild.
-
-To make this command work, first make sure to set the home world of the 
-guild using ```/home_world``` command (documentation above).
-
-Anyone can call this command.
-
-![screenshot](/images/screenshot_wvw_matchup.png)
-
-### /help
-
-Shows general information about the bot and its documentation. Anyone 
-can of course call this command.
-
-![screenshot](/images/screenshot_help.png)
-
-### API keys
-
-Certain commands access the protected parts of the Gw2 API, and so require 
-an API key. Users can add their keys by sending a **private** message 
-to the bot in the following format:
-
-```
-modwvwbot-apikey [API key here]
-```
-
-The bot will check and test the key, and respond accordingly. If the response 
-is successful, the key is saved. It can later be updated with the 
-same command.
-
-**Note**: At least the following API key permissions are needed to make 
-all commands work:
- - account
- - inventories
- - characters
- - wallet
- - progression
-
-### Log processing
-
-If the bot detects log files (EVTC, ZEVTC) uploaded to a watched channel (```/watched_channel```), then 
-it will process these logs.
-
- - Files are uploaded to dps.report and a permalink is created for each.
- - Detailed JSON of the Wvw fight is fetched from dps.report.
- - JSON is cleaned of all unnecessary data (see README in folder *test_logs*).
- - Cleaned JSON and permalinks for every log file are posted in the same channel.
-
-![screenshot](/images/screenshot_log_progress.png)
-![screenshot](/images/screenshot_log_done.png)
-
 ### Announcements using HTTP POST
 
 The ```/announcement``` endpoint can be used to *POST* announcement requests to guilds. 
@@ -292,11 +296,10 @@ There are 2 discord bots that run the code:
  - *Mod WvW Bot \[DEV]*: The development version which supports only the test server 
 with server specific commands.
 
-### Elite Insights parser
+### Build
 
-**NOT USED FOR NOW**. Don't have to do this!
+With Maven:
 
-[Download](https://github.com/baaron4/GW2-Elite-Insights-Parser) and place elite insights parser into src/main/resources folder before attempting to 
-run the bot. The parser is used by the bot, however, it isn't checked into git.
-
-Credits to the creators of Elite Insight Parser.
+```
+mvn clean package -DskipTests=true
+```

@@ -226,6 +226,7 @@ public class WvwRaidService implements SlashCommandHandler {
 
     private void onWvwRaidListCommand(SlashCommandInteractionEvent event) {
         final String emoteClock = EmoteUtils.defaultEmote("clock10");
+        final String emoteNoBell = EmoteUtils.defaultEmote("no_bell");
         var raidsAsStrings = wvwRaidRepository.findByGuildId(event.getGuild().getIdLong())
                 .stream()
                 .map(raid -> {
@@ -238,17 +239,22 @@ public class WvwRaidService implements SlashCommandHandler {
                     if(reminderCheck.reminderNeeded) {
                         builder.append("Emlékeztető ennyivel előtte: ").append(reminderCheck.remindString);
                     } else {
-                        builder.append("Nincs emlékeztető.");
+                        builder.append("Nincs emlékeztető ").append(emoteNoBell);
                     }
                     return builder.toString();
                 })
                 .collect(Collectors.toList());
         log.info("Listed {} WvW raids in guild '{}'", raidsAsStrings.size(), event.getGuild().getName());
         StringBuilder builder = new StringBuilder();
-        builder.append("Ezekről a WvW raidekről tudok:\n");
-        for(String raidString: raidsAsStrings) {
-            builder.append(" - ").append(raidString).append("\n");
+        if(raidsAsStrings.size() > 0) {
+            builder.append("Ezekről a WvW raidekről tudok:\n");
+            for(String raidString: raidsAsStrings) {
+                builder.append(" - ").append(raidString).append("\n");
+            }
+        } else {
+            builder.append("Nincs beállítva egy WvW raid sem. Ezt a **/wvw_raid_add** paranccsal lehet megtenni.");
         }
+
         event.reply(builder.toString()).queue();
     }
 
@@ -269,8 +275,9 @@ public class WvwRaidService implements SlashCommandHandler {
 
     /**
      * Runs a job every 5 minutes to see if reminder need to be posted about a WvW raid.
+     * Only runs between 16-23 hours.
      */
-    @Scheduled(cron = "0 0/5 * * * *")
+    @Scheduled(cron = "0 0/5 16-23 * * *")
     private void runWvwRaidJob() {
         String currentRoundedTime = TimeUtils.getCurrentTimeStringRoundedFiveMinutes();
         log.debug("Running WvW raid job at {}", currentRoundedTime);

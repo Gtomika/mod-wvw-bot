@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AuthorizationService {
 
-    @Value("${com.gaspar.modwvwbot.emote_ids.gem}")
+    @Value("${com.gaspar.modwvwbot.emote_ids.commander}")
     private long commanderEmoteId;
 
     private final RoleCommandsService roleCommandsService;

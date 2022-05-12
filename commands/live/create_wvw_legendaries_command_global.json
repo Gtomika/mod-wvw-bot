@@ -1,0 +1,8 @@
+{
+  "type": 1,
+  "name": "wvw_legendaries",
+  "application_id": 972523867270705172,
+  "description": "Legendás WvW-s tárgyaid megtekintése.",
+  "dm_permission": true,
+  "options": []
+}

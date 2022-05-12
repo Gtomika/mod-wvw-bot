@@ -1,0 +1,9 @@
+{
+  "type": 1,
+  "name": "wvw_legendaries",
+  "application_id": 968767607501115462,
+  "guild_id": 968768762885046272,
+  "description": "Legendás WvW-s tárgyaid megtekintése.",
+  "dm_permission": true,
+  "options": []
+}

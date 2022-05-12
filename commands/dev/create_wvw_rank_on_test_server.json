@@ -1,0 +1,9 @@
+{
+  "type": 1,
+  "name": "wvw_rank",
+  "application_id": 968767607501115462,
+  "guild_id": 968768762885046272,
+  "description": "WvW szinted megtekintése.",
+  "dm_permission": true,
+  "options": []
+}

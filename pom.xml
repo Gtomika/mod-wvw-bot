@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.gaspar</groupId>
 	<artifactId>modwvwbot</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>v1.1</version>
 	<name>modwvwbot</name>
 	<description>MoD WvW Bot</description>
 	<properties>

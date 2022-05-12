@@ -26,8 +26,8 @@ public class Gw2ApiErrorHandler implements ResponseErrorHandler {
 
     @Override
     public void handleError(@NonNull ClientHttpResponse response) throws IOException {
-        if(response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-            log.info("API key has no required permissions, GW2 API responded with 403.");
+        if(response.getStatusCode() == HttpStatus.UNAUTHORIZED || response.getStatusCode() == HttpStatus.FORBIDDEN) {
+            log.info("API key has no required permissions, GW2 API responded with {}.", response.getRawStatusCode());
             throw new UnauthorizedException("APi key does not have required permissions");
         } else {
             log.warn("Gw2 API failed to respond, status text: {}, code: {}", response.getStatusText(), response.getRawStatusCode());

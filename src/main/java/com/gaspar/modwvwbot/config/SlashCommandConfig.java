@@ -25,6 +25,8 @@ public class SlashCommandConfig {
     private final WvwRaidService wvwRaidService;
     private final HelpCommandService helpCommandService;
     private final WvwMatchupService wvwMatchupService;
+    private final WvwLegendariesService wvwLegendariesService;
+    private final WvwRankService wvwRankService;
 
     @AllArgsConstructor
     @Getter
@@ -42,7 +44,9 @@ public class SlashCommandConfig {
                 wvwCurrenciesService,
                 wvwRaidService,
                 helpCommandService,
-                wvwMatchupService
+                wvwMatchupService,
+                wvwLegendariesService,
+                wvwRankService
         ));
     }
 

@@ -1,0 +1,8 @@
+{
+  "type": 1,
+  "name": "wvw_rank",
+  "application_id": 972523867270705172,
+  "description": "WvW szinted megtekintése.",
+  "dm_permission": true,
+  "options": []
+}

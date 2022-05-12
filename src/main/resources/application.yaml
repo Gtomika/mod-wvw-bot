@@ -6,20 +6,18 @@ com:
     modwvwbot:
       security_token: ${SECURITY_TOKEN}
       discord_token: ${BOT_DISCORD_TOKEN}
-      watched_file_extensions: evtc, zevtc
       default_reminder_minutes: 15
       gw2_api_url: https://api.guildwars2.com
       gw2_api_key_url: https://account.arena.net/applications
       gw2_api_key_length: 72
       gw2_api_key_regex: ^[-A-Z0-9]+$
-      gw2_api_key_permissions: account, inventories, characters, wallet, progression
+      gw2_api_key_permissions: account, inventories, characters, wallet, unlocks, progression
       emote_ids:
         gem: 970640961468248144
-        commander: 970638989449105408
+        commander: 970638912458469426
         loading: 971306366687928371
       nubaras_discord_id: 416289572289249280
       documentation_url: https://gtomika.github.io/mod-wvw-bot/
-      dps_report_api_url: https://dps.report
 
 spring:
   jpa:

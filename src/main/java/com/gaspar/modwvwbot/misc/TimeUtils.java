@@ -3,10 +3,7 @@ package com.gaspar.modwvwbot.misc;
 import com.gaspar.modwvwbot.model.WvwRaid;
 import org.springframework.lang.Nullable;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Locale;
@@ -126,6 +123,9 @@ public class TimeUtils {
         }
         if(minutesLeft > 0) {
             builder.append(minutesLeft).append(" perc");
+        }
+        if(builder.length() == 0) {
+            builder.append("Nagyon kevés");
         }
         return builder.toString();
     }
@@ -248,6 +248,21 @@ public class TimeUtils {
                 return "Vasárnap";
             default:
                 throw new IllegalArgumentException("No such day: " + day);
+        }
+    }
+
+    public static int getHourOffset() {
+        LocalDate lastSundayOfMarch = YearMonth.of(Year.now().getValue(), Month.MARCH)
+                .atEndOfMonth()
+                .with( TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate lastSundayOfOctober = YearMonth.of(Year.now().getValue(), Month.OCTOBER)
+                .atEndOfMonth()
+                .with( TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate now = LocalDate.now();
+        if(now.isAfter(lastSundayOfMarch) && now.isBefore(lastSundayOfOctober)) {
+            return 2; //summer time
+        } else {
+            return 1; //not summer time
         }
     }
 }

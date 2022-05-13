@@ -1,6 +1,7 @@
 package com.gaspar.modwvwbot.services.gw2api;
 
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
+import com.gaspar.modwvwbot.misc.TimeUtils;
 import com.gaspar.modwvwbot.model.matchup.WvwColor;
 import com.gaspar.modwvwbot.model.matchup.WvwMatchupReport;
 import com.gaspar.modwvwbot.model.matchup.WvwMatchupResponse;
@@ -46,6 +47,8 @@ public class Gw2WvwService {
         var blue = createSideFromResponse(response.getBody(), WvwColor.blue);
         var green = createSideFromResponse(response.getBody(), WvwColor.green);
         LocalDateTime endTime = LocalDateTime.parse(response.getBody().getEndTime(), DateTimeFormatter.ISO_DATE_TIME);
+        //for some reason we need to offset. probably time zone difference between gw2 api and hungarian time
+        endTime = endTime.plusHours(TimeUtils.getHourOffset());
         return new WvwMatchupReport(List.of(red, blue, green), endTime);
     }
 

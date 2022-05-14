@@ -11,8 +11,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,10 +47,7 @@ public class Gw2WvwService {
         var red = createSideFromResponse(response.getBody(), WvwColor.red);
         var blue = createSideFromResponse(response.getBody(), WvwColor.blue);
         var green = createSideFromResponse(response.getBody(), WvwColor.green);
-        LocalDateTime endTime = LocalDateTime.parse(response.getBody().getEndTime(), DateTimeFormatter.ISO_DATE_TIME);
-        //for some reason we need to offset. probably time zone difference between gw2 api and hungarian time
-        endTime = endTime.plusHours(TimeUtils.getHourOffset());
-        return new WvwMatchupReport(List.of(red, blue, green), endTime);
+        return new WvwMatchupReport(List.of(red, blue, green), getWvwResetTime());
     }
 
     /**
@@ -85,6 +83,19 @@ public class Gw2WvwService {
         return worldIds.stream()
                 .map(id -> gw2WorldService.fetchHomeWorldById(id).getName())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Calculate WvW reset time. For EU servers it is 20:00 PM when daylight savings are active
+     * and 19:00 PM when they aren't.
+     */
+    private LocalDateTime getWvwResetTime() {
+        LocalDateTime nextFriday = LocalDateTime.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
+        if(TimeUtils.isDaylightSavingsInHungary()) {
+            return nextFriday.withHour(20).withMinute(0);
+        } else {
+            return nextFriday.withHour(19).withMinute(0);
+        }
     }
 
 }

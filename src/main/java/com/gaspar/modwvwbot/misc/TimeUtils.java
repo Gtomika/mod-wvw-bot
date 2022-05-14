@@ -251,18 +251,7 @@ public class TimeUtils {
         }
     }
 
-    public static int getHourOffset() {
-        LocalDate lastSundayOfMarch = YearMonth.of(Year.now().getValue(), Month.MARCH)
-                .atEndOfMonth()
-                .with( TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-        LocalDate lastSundayOfOctober = YearMonth.of(Year.now().getValue(), Month.OCTOBER)
-                .atEndOfMonth()
-                .with( TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-        LocalDate now = LocalDate.now();
-        if(now.isAfter(lastSundayOfMarch) && now.isBefore(lastSundayOfOctober)) {
-            return 2; //summer time
-        } else {
-            return 1; //not summer time
-        }
+    public static boolean isDaylightSavingsInHungary() {
+        return ZoneId.of("Europe/Budapest").getRules().isDaylightSavings(Instant.now());
     }
 }

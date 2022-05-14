@@ -21,6 +21,8 @@ public class TimeUtils {
 
     public static final int MINUTES_IN_DAY = 60 * 24;
 
+    public static final ZoneId HU_TIME_ZONE = ZoneId.of("Europe/Budapest");
+
     /**
      * Check if a string is in the expected time format, e.g Friday-20:00. Must also
      * be rounded to 5 minutes: xx:x5 or xx:x0.
@@ -131,27 +133,11 @@ public class TimeUtils {
     }
 
     /**
-     * Convert seconds to hungarian duration. Minutes and seconds are supported.
-     */
-    public static String createHungarianDurationStringFromSeconds(long secondsTotal) {
-        long minutes = secondsTotal / 60;
-        long seconds = secondsTotal - minutes*60;
-        StringBuilder builder = new StringBuilder();
-        if(minutes > 0) {
-            builder.append(minutes).append(" perc, ");
-        }
-        if(seconds > 0) {
-            builder.append(seconds).append(" másodperc");
-        }
-        return builder.toString();
-    }
-
-    /**
      * See {@link #getTimeStringRoundedToFiveMinutes(LocalDateTime)}, but with the
      * current time.
      */
     public static String getCurrentTimeStringRoundedFiveMinutes() {
-        return getTimeStringRoundedToFiveMinutes(LocalDateTime.now());
+        return getTimeStringRoundedToFiveMinutes(LocalDateTime.now(HU_TIME_ZONE));
     }
 
     /**
@@ -206,7 +192,7 @@ public class TimeUtils {
         var parts = time.split("-");
         //get time at the specified day
         DayOfWeek day = DayOfWeek.valueOf(parts[0].toUpperCase());
-        LocalDateTime date = LocalDateTime.now().with(TemporalAdjusters.next(day));
+        LocalDateTime date = LocalDateTime.now(HU_TIME_ZONE).with(TemporalAdjusters.next(day));
         //adjust to hour and minutes
         var hourMin = parts[1].split(":");
         String hourString = hourMin[0];
@@ -252,6 +238,6 @@ public class TimeUtils {
     }
 
     public static boolean isDaylightSavingsInHungary() {
-        return ZoneId.of("Europe/Budapest").getRules().isDaylightSavings(Instant.now());
+        return HU_TIME_ZONE.getRules().isDaylightSavings(Instant.now());
     }
 }

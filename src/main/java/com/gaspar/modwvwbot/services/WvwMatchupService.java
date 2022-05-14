@@ -73,7 +73,7 @@ public class WvwMatchupService implements SlashCommandHandler {
         String resetAt = TimeUtils.getTimeString(resetTime);
         resetAt = TimeUtils.createHungarianTimeString(resetAt);
         //duration until reset
-        long minutesUntilReset = LocalDateTime.now().until(resetTime, ChronoUnit.MINUTES);
+        long minutesUntilReset = LocalDateTime.now(TimeUtils.HU_TIME_ZONE).until(resetTime, ChronoUnit.MINUTES);
         String durationToReset = TimeUtils.createHungarianDurationStringFromMinutes(minutesUntilReset);
         String clock = EmoteUtils.defaultEmote("clock10");
         return "Reset ideje: " + resetAt + " " + clock +  ", hátralévő idő: " + durationToReset;

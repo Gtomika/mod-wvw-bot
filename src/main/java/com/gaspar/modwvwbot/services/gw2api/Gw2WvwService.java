@@ -1,6 +1,7 @@
 package com.gaspar.modwvwbot.services.gw2api;
 
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
+import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.misc.TimeUtils;
 import com.gaspar.modwvwbot.model.matchup.WvwColor;
 import com.gaspar.modwvwbot.model.matchup.WvwMatchupReport;
@@ -8,7 +9,9 @@ import com.gaspar.modwvwbot.model.matchup.WvwMatchupResponse;
 import com.gaspar.modwvwbot.model.matchup.WvwMatchupSide;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.DayOfWeek;
@@ -41,8 +44,14 @@ public class Gw2WvwService {
     public WvwMatchupReport createMatchupReport(int homeWorldId) throws Gw2ApiException {
         String matchupUrl = "/v2/wvw/matches?world=" + homeWorldId;
         log.debug("Getting Wvw matchup report from: {}", matchupUrl);
-        var response = restTemplate.getForEntity(matchupUrl, WvwMatchupResponse.class);
-        if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
+        ResponseEntity<WvwMatchupResponse> response;
+        try {
+            response = restTemplate.getForEntity(matchupUrl, WvwMatchupResponse.class);
+            if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
+        } catch (ResourceAccessException e) {
+            log.error("Gw2 API failure.", e);
+            throw new Gw2ApiException(e);
+        }
 
         var red = createSideFromResponse(response.getBody(), WvwColor.red);
         var blue = createSideFromResponse(response.getBody(), WvwColor.blue);
@@ -79,7 +88,7 @@ public class Gw2WvwService {
      * Get a list of world names based on world IDs.
      * @param worldIds World IDs.
      */
-    private List<String> getWorldNames(List<Integer> worldIds) {
+    private List<String> getWorldNames(List<Integer> worldIds) throws UnauthorizedException, Gw2ApiException {
         return worldIds.stream()
                 .map(id -> gw2WorldService.fetchHomeWorldById(id).getName())
                 .collect(Collectors.toList());

@@ -7,8 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -35,7 +37,14 @@ public class Gw2WorldService {
         String getAllWorldsEndpoint = "/v2/worlds?ids=all";
         log.debug("GW2 API endpoint for fetching all worlds is: {}", getAllWorldsEndpoint);
 
-        var response = restTemplate.getForEntity(getAllWorldsEndpoint, HomeWorldResponse[].class);
+        ResponseEntity<HomeWorldResponse[]> response;
+        try {
+            response = restTemplate.getForEntity(getAllWorldsEndpoint, HomeWorldResponse[].class);
+        } catch (ResourceAccessException e) {
+            log.error("Gw2 API failure.", e);
+            throw new Gw2ApiException(e);
+        }
+
         HomeWorldResponse[] homeWorlds = response.getBody();
         if(homeWorlds == null) {
             log.warn("GW2 API failed to send world data, empty response.");
@@ -56,10 +65,14 @@ public class Gw2WorldService {
     public HomeWorldResponse fetchHomeWorldById(@NonNull Integer id) throws Gw2ApiException {
         String getByIdEndpoint = "/v2/worlds/" + id;
         log.debug("GW2 API endpoint for getting world with id '{}' is: {}", id, getByIdEndpoint);
-
-        var response = restTemplate.getForEntity(getByIdEndpoint, HomeWorldResponse.class);
-        if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
-        return response.getBody();
+        try {
+            var response = restTemplate.getForEntity(getByIdEndpoint, HomeWorldResponse.class);
+            if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
+            return response.getBody();
+        } catch (ResourceAccessException e) {
+            log.error("Gw2 API failure.", e);
+            throw new Gw2ApiException(e);
+        }
     }
 
 }

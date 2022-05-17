@@ -6,6 +6,7 @@ import com.gaspar.modwvwbot.model.gw2api.Gw2Account;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -33,8 +34,13 @@ public class Gw2AccountService {
         String getUserEndpoint = "/v2/account";
         log.debug("Fetching Gw2 account data from: " + getUserEndpoint);
         getUserEndpoint += "?access_token=" + apiKey;
-        var response = restTemplate.getForEntity(getUserEndpoint, Gw2Account.class);
-        if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
-        return response.getBody();
+        try {
+            var response = restTemplate.getForEntity(getUserEndpoint, Gw2Account.class);
+            if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
+            return response.getBody();
+        } catch (ResourceAccessException e) {
+            log.error("Gw2 API failure.", e);
+            throw new Gw2ApiException(e);
+        }
     }
 }

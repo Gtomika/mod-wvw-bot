@@ -6,12 +6,12 @@ import com.gaspar.modwvwbot.misc.AmountUtils;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.model.Amount;
 import com.gaspar.modwvwbot.model.gw2api.InventoryResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -72,8 +72,13 @@ public class Gw2InventoryService {
             throws Gw2ApiException, UnauthorizedException {
         String getInventoryEndpoint = "/v2/characters/%s/inventory?access_token=" + apiKey;
         String urlWithName = String.format(getInventoryEndpoint, name);
-        var response = restTemplate.getForEntity(urlWithName, InventoryResponse.class);
-        if(response.getBody() == null) throw new Gw2ApiException("No response body");
-        AmountUtils.countInInventory(amounts, response.getBody());
+        try {
+            var response = restTemplate.getForEntity(urlWithName, InventoryResponse.class);
+            if(response.getBody() == null) throw new Gw2ApiException("No response body");
+            AmountUtils.countInInventory(amounts, response.getBody());
+        } catch (ResourceAccessException e) {
+            log.error("Gw2 API failure.", e);
+            throw new Gw2ApiException(e);
+        }
     }
 }

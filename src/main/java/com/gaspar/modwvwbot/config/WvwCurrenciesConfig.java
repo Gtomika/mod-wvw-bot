@@ -25,7 +25,7 @@ public class WvwCurrenciesConfig {
             new WvwItemOrCurrency(26, "Skirmish Claim Tickets", "skirmish_claim_ticket", 971665489904431105L),
             new WvwItemOrCurrency(31, "Proofs of Heroics", "heroics", 971666141225300048L),
             new WvwItemOrCurrency(36, "Proofs of Desert Heroics", "desert_heroics", 971666140877185037L),
-            new WvwItemOrCurrency(65, "Proofs of Jade Heroics", "jade_heroics", 971666141367898132L)
+            new WvwItemOrCurrency(65, "Proofs of Jade Heroics", "jade_heroics", 976053286975193118L)
     );
 
     @Bean

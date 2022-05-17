@@ -67,7 +67,7 @@ public class WvwLegendariesService implements SlashCommandHandler {
             hook.editOriginal(apiKeyService.getNoPermissionsMessage()).queue();
         } catch (Gw2ApiException e) {
             String error = EmoteUtils.defaultEmote("no_entry_sign");
-            hook.editOriginal("A Gw2 API hibás választ adott " + error + ". Ez nem a te hibád, próbáld újra " +
+            hook.editOriginal("A Gw2 API hibás választ adott, vagy nem válaszolt " + error + ". Ez nem a te hibád, próbáld újra " +
                     "kicsit később.").queue();
         }
     }

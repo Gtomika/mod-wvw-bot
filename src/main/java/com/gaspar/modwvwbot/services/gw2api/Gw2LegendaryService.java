@@ -4,11 +4,11 @@ import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.misc.AmountUtils;
 import com.gaspar.modwvwbot.model.Amount;
-import com.gaspar.modwvwbot.model.WvwItemOrCurrency;
 import com.gaspar.modwvwbot.model.gw2api.ItemResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -35,8 +35,13 @@ public class Gw2LegendaryService {
      */
     public void countLegendaries(List<Amount> wvwLegendaries, String apiKey) throws Gw2ApiException, UnauthorizedException {
         String legendaryEndpoint = "/v2/account/legendaryarmory?access_token=" + apiKey;
-        var response = restTemplate.getForEntity(legendaryEndpoint, ItemResponse[].class);
-        if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
-        AmountUtils.countItemArray(wvwLegendaries, response.getBody());
+        try {
+            var response = restTemplate.getForEntity(legendaryEndpoint, ItemResponse[].class);
+            if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
+            AmountUtils.countItemArray(wvwLegendaries, response.getBody());
+        } catch (ResourceAccessException e) {
+            log.error("Gw2 API failure.", e);
+            throw new Gw2ApiException(e);
+        }
     }
 }

@@ -2,11 +2,10 @@ package com.gaspar.modwvwbot.services.gw2api;
 
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.UnauthorizedException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -34,9 +33,14 @@ public class Gw2CharacterService {
      */
     public List<String> fetchCharacterNames(String apiKey) throws Gw2ApiException, UnauthorizedException {
         String getCharactersUrl = "/v2/characters?access_token=" + apiKey;
-        var response = restTemplate.getForEntity(getCharactersUrl, String[].class);
-        if(response.getBody() == null) throw new Gw2ApiException("Response body was null.");
-        return Arrays.asList(response.getBody());
-
+        log.debug("Character endpoint: {}", getCharactersUrl);
+        try {
+            var response = restTemplate.getForEntity(getCharactersUrl, String[].class);
+            if(response.getBody() == null) throw new Gw2ApiException("Response body was null.");
+            return Arrays.asList(response.getBody());
+        } catch (ResourceAccessException e) {
+            log.error("Gw2 API failure.", e);
+            throw new Gw2ApiException(e);
+        }
     }
 }

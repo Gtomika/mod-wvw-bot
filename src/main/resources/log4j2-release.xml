@@ -9,6 +9,7 @@
             <logzioToken>$LOGZIO_TOKEN</logzioToken>
             <logzioUrl>https://listener-eu.logz.io:8071</logzioUrl>
             <logzioType>java</logzioType>
+            <additionalFields>application=mod_wvw_bot</additionalFields>
         </LogzioAppender>
     </Appenders>
 

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -36,9 +37,14 @@ public class Gw2StorageService {
      */
     public void countItemsInStorage(String apiKey, List<Amount> amounts) throws Gw2ApiException, UnauthorizedException {
         String storageUrl = "/v2/account/materials?access_token=" + apiKey;
-        var response = restTemplate.getForEntity(storageUrl, ItemResponse[].class);
-        if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
-        AmountUtils.countItemArray(amounts, response.getBody());
+        try {
+            var response = restTemplate.getForEntity(storageUrl, ItemResponse[].class);
+            if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
+            AmountUtils.countItemArray(amounts, response.getBody());
+        } catch (ResourceAccessException e) {
+            log.error("Gw2 API failure.", e);
+            throw new Gw2ApiException(e);
+        }
     }
 
 }

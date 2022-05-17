@@ -103,7 +103,7 @@ public class HomeWorldCommandService implements SlashCommandHandler {
             return new OptionWorldCheck(true, true, response);
         } catch (Gw2ApiException e) {
             log.warn("Failed to validate world with name '{}' because of GW2 API failure.", optionName.getAsString(), e);
-            event.reply("A GW2 API hibás választ adott. Sajnos nem sikerült beállítani az új világot.").queue();
+            event.reply("A GW2 API hibás választ adott, vagy nem válaszolt. Sajnos nem sikerült beállítani az új világot.").queue();
             return new OptionWorldCheck(true, false, null);
         } catch (HomeWorldNotFoundException e) {
             log.info("'{}' is not a valid GW2 world name.", optionName.getAsString());

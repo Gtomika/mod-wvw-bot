@@ -18,6 +18,8 @@ com:
         loading: 971306366687928371
       nubaras_discord_id: 416289572289249280
       documentation_url: https://gtomika.github.io/mod-wvw-bot/
+      reset_time_summer: 20
+      reset_time_winter: 19
 
 spring:
   jpa:

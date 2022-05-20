@@ -11,11 +11,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 
 /**
  * Handles /wvw_matchup command.
@@ -26,6 +29,12 @@ import java.time.temporal.ChronoUnit;
 public class WvwMatchupService implements SlashCommandHandler {
 
     private static final String WVW_MATCHUP_COMMAND = "/wvw_matchup";
+
+    @Value("${com.gaspar.modwvwbot.reset_time_summer}")
+    private int resetHourSummer;
+
+    @Value("${com.gaspar.modwvwbot.reset_time_winter}")
+    private int resetHourWinter;
 
     private final HomeWorldCommandService homeWorldCommandService;
     private final Gw2WvwService gw2WvwService;
@@ -51,6 +60,7 @@ public class WvwMatchupService implements SlashCommandHandler {
         //create report using API
         try {
             var report = gw2WvwService.createMatchupReport(homeWorld.getWorldId());
+            report.setEndsAt(getWvwResetTime());
             //build message
             String message = "**Jelentés:**\n" +
                     getTimeStringUntilReset(report.getEndsAt()) + "\n\n" +
@@ -60,8 +70,8 @@ public class WvwMatchupService implements SlashCommandHandler {
             hook.editOriginal(message).queue();
         } catch (Gw2ApiException e) {
             String error = EmoteUtils.defaultEmote("no_entry_sign");
-            hook.editOriginal("A Gw2 API hibás választ adott, vagy nem válaszolt " + error + ". Ez nem a te hibád, próbáld újra " +
-                    "kicsit később.").queue();
+            hook.editOriginal("A Gw2 API hibás választ adott, vagy nem válaszolt " + error + ". " +
+                    "Reset után egy-másfél óráig ez várható viselkedés.").queue();
         }
     }
 
@@ -136,6 +146,26 @@ public class WvwMatchupService implements SlashCommandHandler {
                 log.error("Invalid placement: {}", placement);
                 throw new IllegalArgumentException("Invalid placement: " + placement);
         }
+    }
+
+    /**
+     * Calculate WvW reset time. For EU servers it is 20:00 PM when daylight savings are active
+     * and 19:00 PM when they aren't.
+     */
+    private LocalDateTime getWvwResetTime() {
+        boolean daylightSavings = TimeUtils.isDaylightSavingsInHungary();
+        //reset time depends if daylight saving time is on
+        int resetHour = daylightSavings ? resetHourSummer : resetHourWinter;
+        var now = LocalDateTime.now();
+        LocalDateTime nextReset;
+        if(now.getDayOfWeek() == DayOfWeek.FRIDAY && now.getHour() >= resetHour) {
+            //it is friday, after reset, get next friday
+            nextReset = LocalDateTime.now(TimeUtils.HU_TIME_ZONE).with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
+        } else {
+            //get next friday 20:00 time
+            nextReset = LocalDateTime.now(TimeUtils.HU_TIME_ZONE).with(TemporalAdjusters.nextOrSame(DayOfWeek.FRIDAY));
+        }
+        return nextReset.withHour(resetHour).withMinute(0);
     }
 
     @Override

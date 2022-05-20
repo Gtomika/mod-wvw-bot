@@ -22,7 +22,7 @@ public class WvwMatchupReport {
     /**
      * When the matchup ends.
      */
-    private final LocalDateTime endsAt;
+    private LocalDateTime endsAt;
 
     public WvwMatchupReport(List<WvwMatchupSide> sides, LocalDateTime endsAt) {
         this.sides = sides.stream()

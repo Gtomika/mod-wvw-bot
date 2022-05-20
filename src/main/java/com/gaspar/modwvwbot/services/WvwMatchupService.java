@@ -156,14 +156,14 @@ public class WvwMatchupService implements SlashCommandHandler {
         boolean daylightSavings = TimeUtils.isDaylightSavingsInHungary();
         //reset time depends if daylight saving time is on
         int resetHour = daylightSavings ? resetHourSummer : resetHourWinter;
-        var now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(TimeUtils.HU_TIME_ZONE);
         LocalDateTime nextReset;
         if(now.getDayOfWeek() == DayOfWeek.FRIDAY && now.getHour() >= resetHour) {
             //it is friday, after reset, get next friday
-            nextReset = LocalDateTime.now(TimeUtils.HU_TIME_ZONE).with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
+            nextReset = now.with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
         } else {
             //get next friday 20:00 time
-            nextReset = LocalDateTime.now(TimeUtils.HU_TIME_ZONE).with(TemporalAdjusters.nextOrSame(DayOfWeek.FRIDAY));
+            nextReset = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.FRIDAY));
         }
         return nextReset.withHour(resetHour).withMinute(0);
     }

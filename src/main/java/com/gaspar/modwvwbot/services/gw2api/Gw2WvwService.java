@@ -100,7 +100,7 @@ public class Gw2WvwService {
      */
     private LocalDateTime getWvwResetTime() {
         LocalDateTime nextFriday = LocalDateTime.now(TimeUtils.HU_TIME_ZONE)
-                .with(TemporalAdjusters.next(DayOfWeek.FRIDAY));
+                .with(TemporalAdjusters.nextOrSame(DayOfWeek.FRIDAY));
         if(TimeUtils.isDaylightSavingsInHungary()) {
             return nextFriday.withHour(20).withMinute(0);
         } else {

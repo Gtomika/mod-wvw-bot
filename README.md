@@ -72,12 +72,27 @@ section about API keys on how to add one.
 ### /wvw_matchup
 
 Gets the state of the current WvW matchup. This is based on the home
-world of the guild.
+world of the guild. The bot will try to predict **based on current placements** 
+which world will be matched up against the guilds home world. If the 
+placements change until reset, this prediction will of course be inaccurate.
+
+This command will not make predictions if the next week is relink. In this case no 
+predictions can be made at all.
 
 To make this command work, first make sure to set the home world of the
 guild using ```/home_world``` command. Anyone can call this command.
 
 ![screenshot](/images/screenshot_wvw_matchup.png)
+
+### /next_wvw_matchup
+
+Displays a prediction based on current standings: what tier will the home server 
+of the guild be in, and what opponents will they face.
+
+To make this command work, first make sure to set the home world of the
+guild using ```/home_world``` command. Anyone can call this command.
+
+![screenshot](/images/screenshot_prediction.png)
 
 ### /wvw_legendaries
 

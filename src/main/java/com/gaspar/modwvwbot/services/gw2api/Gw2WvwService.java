@@ -1,7 +1,7 @@
 package com.gaspar.modwvwbot.services.gw2api;
 
 import com.gaspar.modwvwbot.exception.Gw2ApiException;
-import com.gaspar.modwvwbot.exception.UnauthorizedException;
+import com.gaspar.modwvwbot.model.gw2api.WvwRank;
 import com.gaspar.modwvwbot.model.matchup.WvwColor;
 import com.gaspar.modwvwbot.model.matchup.WvwMatchupReport;
 import com.gaspar.modwvwbot.model.matchup.WvwMatchupResponse;
@@ -32,6 +32,14 @@ public class Gw2WvwService {
     }
 
     /**
+     * Creates a {@link WvwMatchupReport} from a matchup ID.
+     */
+    public WvwMatchupReport createMatchupReport(String matchupId) {
+        String matchupUrl = "/v2/wvw/matches/" + matchupId;
+        return getMatchupReport(matchupUrl);
+    }
+
+    /**
      * Creates a {@link WvwMatchupReport} of the current matchup of a world.
      * @param homeWorldId ID of the world.
      * @return Report.
@@ -39,6 +47,14 @@ public class Gw2WvwService {
      */
     public WvwMatchupReport createMatchupReport(int homeWorldId) throws Gw2ApiException {
         String matchupUrl = "/v2/wvw/matches?world=" + homeWorldId;
+        return getMatchupReport(matchupUrl);
+    }
+
+    /**
+     * Fetches a wvw matchup report.
+     * @param matchupUrl URL used to get the report.
+     */
+    private WvwMatchupReport getMatchupReport(String matchupUrl) {
         log.debug("Getting Wvw matchup report from: {}", matchupUrl);
         ResponseEntity<WvwMatchupResponse> response;
         try {
@@ -52,7 +68,10 @@ public class Gw2WvwService {
         var red = createSideFromResponse(response.getBody(), WvwColor.red);
         var blue = createSideFromResponse(response.getBody(), WvwColor.blue);
         var green = createSideFromResponse(response.getBody(), WvwColor.green);
-        return new WvwMatchupReport(List.of(red, blue, green), null);
+        //get tier from ID
+        String id = response.getBody().getMatchId();
+        int tier = Integer.parseInt(id.split("-")[1]);
+        return new WvwMatchupReport(List.of(red, blue, green), tier);
     }
 
     /**
@@ -73,6 +92,7 @@ public class Gw2WvwService {
         return WvwMatchupSide.builder()
                 .color(color)
                 .worldNames(names)
+                .worldIds(response.getAllWorlds().getByColor(color))
                 .killCount(kills)
                 .deathCount(deaths)
                 .victoryPoints(victoryPoints)
@@ -84,10 +104,20 @@ public class Gw2WvwService {
      * Get a list of world names based on world IDs.
      * @param worldIds World IDs.
      */
-    private List<String> getWorldNames(List<Integer> worldIds) throws UnauthorizedException, Gw2ApiException {
+    private List<String> getWorldNames(List<Integer> worldIds) throws Gw2ApiException {
         return worldIds.stream()
                 .map(id -> gw2WorldService.fetchHomeWorldById(id).getName())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get all {@link WvwRank}s from the API.
+     */
+    public WvwRank[] getWvwRanks() throws Gw2ApiException {
+        String endpoint = "/v2/wvw/ranks?ids=all";
+        var response = restTemplate.getForEntity(endpoint, WvwRank[].class);
+        if(response.getBody() == null) throw new Gw2ApiException("Response body was null!");
+        return response.getBody();
     }
 
 }

@@ -1,0 +1,9 @@
+{
+  "type": 1,
+  "name": "next_wvw_matchup",
+  "application_id": 968767607501115462,
+  "guild_id": 968768762885046272,
+  "description": "Jövő heti WvW állapot becslése.",
+  "dm_permission": false,
+  "options": []
+}

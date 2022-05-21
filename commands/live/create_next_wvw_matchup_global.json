@@ -1,0 +1,8 @@
+{
+  "type": 1,
+  "name": "next_wvw_matchup",
+  "application_id": 972523867270705172,
+  "description": "Jövő heti WvW állapot becslése.",
+  "dm_permission": false,
+  "options": []
+}

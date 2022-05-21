@@ -26,6 +26,12 @@ public class WvwMatchupSide {
     private List<String> worldNames;
 
     /**
+     * Ids of the worlds on this side. The first one is always
+     * the main server, the rest are the paired servers.
+     */
+    private List<Integer> worldIds;
+
+    /**
      * Amount of victory points this side has.
      */
     private int victoryPoints;
@@ -45,4 +51,10 @@ public class WvwMatchupSide {
      */
     private float killDeathRatio;
 
+    /**
+     * Checks if this side has the specified world.
+     */
+    public boolean containsWorld(int worldId) {
+        return worldIds.contains(worldId);
+    }
 }

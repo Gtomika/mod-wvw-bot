@@ -6,8 +6,10 @@ import com.gaspar.modwvwbot.exception.UnauthorizedException;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.model.gw2api.Gw2Account;
 import com.gaspar.modwvwbot.model.gw2api.HomeWorldResponse;
+import com.gaspar.modwvwbot.model.gw2api.WvwRank;
 import com.gaspar.modwvwbot.services.gw2api.Gw2AccountService;
 import com.gaspar.modwvwbot.services.gw2api.Gw2WorldService;
+import com.gaspar.modwvwbot.services.gw2api.Gw2WvwService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -31,6 +33,7 @@ public class WvwRankService implements SlashCommandHandler {
     private final ApiKeyService apiKeyService;
     private final Gw2AccountService gw2AccountService;
     private final Gw2WorldService gw2WorldService;
+    private final Gw2WvwService gw2WvwService;
 
     @Override
     public void handleSlashCommand(SlashCommandInteractionEvent event) {
@@ -56,7 +59,11 @@ public class WvwRankService implements SlashCommandHandler {
             }
             //resolve world
             HomeWorldResponse homeWorldResponse = gw2WorldService.fetchHomeWorldById(account.getWorldId());
-            String message = getResponseMessage(account, homeWorldResponse.getName());
+            //resolve wvw rank
+            var ranks = gw2WvwService.getWvwRanks();
+            String rankTitle = findRankTitle(account.getWvwLevel(), ranks);
+            //create and send message
+            String message = getResponseMessage(account, rankTitle, homeWorldResponse.getName());
             hook.editOriginal(message).queue();
         } catch (UnauthorizedException e) {
             hook.editOriginal(apiKeyService.getNoPermissionsMessage()).queue();
@@ -67,11 +74,17 @@ public class WvwRankService implements SlashCommandHandler {
         }
     }
 
-    private String getResponseMessage(Gw2Account account, String homeWorld) {
+    /**
+     * Create a message describing the user's account.
+     * @param account Account details.
+     * @param rankTitle Name of the user's wvw rank such as "diamon raider".
+     * @param homeWorld Name of the user's home world.
+     */
+    private String getResponseMessage(Gw2Account account, String rankTitle, String homeWorld) {
         var message = new StringBuilder();
         message.append("**Jelentés**: ").append(account.getAccountName()).append("\n");
         message.append(" - WvW rang: ").append(account.getWvwLevel()).append(" (")
-                .append(getWvwTier(account.getWvwLevel())).append(")\n");
+                .append(rankTitle).append(")\n");
         message.append(" - Világ: ").append(homeWorld).append("\n");
 
         String commander = EmoteUtils.customEmote("commander", commanderEmoteId);
@@ -79,25 +92,19 @@ public class WvwRankService implements SlashCommandHandler {
         return message.toString();
     }
 
-    private String getWvwTier(Integer rank) {
-        if(rank >= 10000) {
-            return "God of WvW";
+    /**
+     * Find the user's wvw title from his rank.
+     * @param userRank User wvw level.
+     * @param ranks All ranks.
+     */
+    private String findRankTitle(int userRank, WvwRank[] ranks) {
+        for(int i = ranks.length - 1; i >= 0; i--) {
+            WvwRank rank = ranks[i];
+            if(userRank >= rank.getMinRank()) {
+                return rank.getTitle();
+            }
         }
-        if(rank < 150) {
-            return "fokozat nélküli";
-        } else if(rank < 620) {
-            return "bronz fokozat";
-        } else if(rank < 1395) {
-            return "ezüst fokozat";
-        } else if(rank < 2545) {
-            return "arany fokozat";
-        } else if(rank < 4095) {
-            return "platinum fokozat";
-        } else if(rank < 6445) {
-            return "mithril fokozat";
-        } else {
-            return "gyémánt fokozat";
-        }
+        return "Invader"; //should not get here
     }
 
     @Override

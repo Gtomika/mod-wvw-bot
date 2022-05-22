@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
@@ -174,7 +175,6 @@ public class MatchupUtils {
                     }
                 } else {
                     //home stays in a middle tier
-                    WvwMatchupReport predictedTierReport = gw2WvwService.createMatchupReport(matchupId(predictedTier));
                     WvwMatchupReport belowPredictedTierReport = gw2WvwService.createMatchupReport(matchupId(predictedTier+1));
                     WvwMatchupReport abovePredictedTierReport = gw2WvwService.createMatchupReport(matchupId(predictedTier-1));
                     var dropsDown = abovePredictedTierReport.getThirdPlace();
@@ -216,7 +216,29 @@ public class MatchupUtils {
      * @param resetTime Time of next reset.
      */
     public boolean isRelink(LocalDateTime resetTime) {
-        return false; //TODO
+        LocalDateTime relinkTime = LocalDateTime.now(TimeUtils.HU_TIME_ZONE);
+        if(!isOddMonth(relinkTime.getMonth())) {
+            //relink is on odd months last friday
+            //if this is not an odd month, move to the next
+            relinkTime = relinkTime.with(TemporalAdjusters.firstDayOfNextMonth());
+        }
+        //get last friday of this month
+        relinkTime = relinkTime.with(TemporalAdjusters.lastInMonth(DayOfWeek.FRIDAY));
+        return isSameDay(resetTime, relinkTime);
+    }
+
+    /**
+     * Checks if a month is odd, that is 1., 3., 5., etc...
+     */
+    private boolean isOddMonth(Month month) {
+        return month.getValue() % 2 != 0;
+    }
+
+    /**
+     * Checks if two dates are on the same day.
+     */
+    private boolean isSameDay(LocalDateTime date1, LocalDateTime date2) {
+        return date1.toLocalDate().equals(date2.toLocalDate());
     }
 
     private String matchupId(int tier) {

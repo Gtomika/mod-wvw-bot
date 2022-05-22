@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Channel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -62,10 +63,18 @@ public class ChannelCommandsService implements SlashCommandHandler {
         if(event.getCommandString().startsWith(WATCH_CHANNEL_COMMAND)) {
             switch (optionAction.getAsString()) {
                 case "watched_channel_add":
-                    if(authorizationService.authorize(event)) onAddWatchedChannel(event);
+                    event.deferReply().queue(hook -> {
+                        if(authorizationService.authorize(event, hook)) {
+                            onAddWatchedChannel(event, hook);
+                        }
+                    });
                     break;
                 case "watched_channel_delete":
-                    if(authorizationService.authorize(event)) onDeleteWatchedChannel(event);
+                    event.deferReply().queue(hook -> {
+                        if(authorizationService.authorize(event, hook)) {
+                            onDeleteWatchedChannel(event, hook);
+                        }
+                    });
                     break;
                 case "watched_channel_list":
                     onListWatchedChannels(event);
@@ -77,10 +86,18 @@ public class ChannelCommandsService implements SlashCommandHandler {
         } else if(event.getCommandString().startsWith(ANNOUNCEMENT_CHANNEL_COMMAND)) {
             switch (optionAction.getAsString()) {
                 case "announcement_channel_add":
-                    if(authorizationService.authorize(event)) onAddAnnouncementChannel(event);
+                    event.deferReply().queue(hook -> {
+                        if(authorizationService.authorize(event, hook)) {
+                            onAddAnnouncementChannel(event, hook);
+                        }
+                    });
                     break;
                 case "announcement_channel_delete":
-                    if(authorizationService.authorize(event)) onDeleteAnnouncementChannel(event);
+                    event.deferReply().queue(hook -> {
+                        if(authorizationService.authorize(event, hook)) {
+                            onDeleteAnnouncementChannel(event, hook);
+                        }
+                    });
                     break;
                 case "announcement_channel_list":
                     onListAnnouncementChannels(event);
@@ -149,7 +166,7 @@ public class ChannelCommandsService implements SlashCommandHandler {
         return textChannel.getIdLong();
     }
 
-    private void onAddWatchedChannel(SlashCommandInteractionEvent event) {
+    private void onAddWatchedChannel(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
         Long channelId = getTargetChannelId(event);
         if(channelId == null) return;
@@ -160,13 +177,13 @@ public class ChannelCommandsService implements SlashCommandHandler {
             var watchedChannel = new WatchedChannel(event.getGuild().getIdLong(), channelId);
             watchedChannelRepository.save(watchedChannel);
             log.info("Watching new channel with id '{}' on guild '{}'", channelId, event.getGuild().getName());
-            event.reply("Mostantól figyelem a <#" + channelId + "> csatornát " + emote).queue();
+            hook.editOriginal("Mostantól figyelem a <#" + channelId + "> csatornát " + emote).queue();
         } else {
-            event.reply("Ezt a csatornát már figyelem " + emote).queue();
+            hook.editOriginal("Ezt a csatornát már figyelem " + emote).queue();
         }
     }
 
-    private void onDeleteWatchedChannel(SlashCommandInteractionEvent event) {
+    private void onDeleteWatchedChannel(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
         Long channelId = getTargetChannelId(event);
         if(channelId == null) return;
@@ -175,9 +192,9 @@ public class ChannelCommandsService implements SlashCommandHandler {
         if(optional.isPresent()) {
             watchedChannelRepository.delete(optional.get());
             log.info("No longer watching channel with id '{}' on guild '{}'", channelId, event.getGuild().getName());
-            event.reply("Mostantól NEM figyelem a <#" + channelId + "> csatornát.").queue();
+            hook.editOriginal("Mostantól NEM figyelem a <#" + channelId + "> csatornát.").queue();
         } else {
-            event.reply("Ezt a csatornát nem is figyeltem.").queue();
+            hook.editOriginal("Ezt a csatornát nem is figyeltem.").queue();
         }
     }
 
@@ -217,7 +234,7 @@ public class ChannelCommandsService implements SlashCommandHandler {
         return false;
     }
 
-    private void onAddAnnouncementChannel(SlashCommandInteractionEvent event) {
+    private void onAddAnnouncementChannel(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
         Long channelId = getTargetChannelId(event);
         if(channelId == null) return;
@@ -228,13 +245,13 @@ public class ChannelCommandsService implements SlashCommandHandler {
             var announcementChannel = new AnnouncementChannel(event.getGuild().getIdLong(), channelId);
             announcementChannelRepository.save(announcementChannel);
             log.info("New announcement channel with id '{}' on guild '{}'", channelId, event.getGuild().getName());
-            event.reply("A hirdetéseimet mostantól <#" + channelId + "> csatornára is kirakom " + emote).queue();
+            hook.editOriginal("A hirdetéseimet mostantól <#" + channelId + "> csatornára is kirakom " + emote).queue();
         } else {
-            event.reply("Erre a csatornára már most is írok hirdetéseket " + emote).queue();
+            hook.editOriginal("Erre a csatornára már most is írok hirdetéseket " + emote).queue();
         }
     }
 
-    private void onDeleteAnnouncementChannel(SlashCommandInteractionEvent event) {
+    private void onDeleteAnnouncementChannel(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
         Long channelId = getTargetChannelId(event);
         if(channelId == null) return;
@@ -243,9 +260,9 @@ public class ChannelCommandsService implements SlashCommandHandler {
         if(optional.isPresent()) {
             announcementChannelRepository.delete(optional.get());
             log.info("Channel with id '{}' on guild '{}' is no longer an announcement channel.", channelId, event.getGuild().getName());
-            event.reply("Mostantól NEM használom hirdetésekre <#" + channelId + "> csatornát.").queue();
+            hook.editOriginal("Mostantól NEM használom hirdetésekre <#" + channelId + "> csatornát.").queue();
         } else {
-            event.reply("Ezt a csatornát nem is használtam hirdetésre.").queue();
+            hook.editOriginal("Ezt a csatornát nem is használtam hirdetésre.").queue();
         }
     }
 

@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,12 +55,14 @@ public class AuthorizationService {
 
     /**
      * Authorizes a slash command. If unauthorized, a response is sent.
+     * @param event Event with details. DO NOT use this to reply!
+     * @param hook Interaction hook, use to reply.
      * @return True if authorized. If false, then response was sent to the command already.
      */
-    public boolean authorize(SlashCommandInteractionEvent event) {
+    public boolean authorize(SlashCommandInteractionEvent event, InteractionHook hook) {
         if(isUnauthorizedToManageBot(event.getMember())) {
             log.info("Unauthorized user '{}' attempted to invoke command '{}'", event.getUser().getName(), event.getCommandString());
-            event.reply(getUnauthorizedMessage()).queue();
+            hook.editOriginal(getUnauthorizedMessage()).queue();
             return false;
         }
         return true;

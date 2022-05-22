@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,10 +45,18 @@ public class RoleCommandsService implements SlashCommandHandler {
         if(event.getCommandString().startsWith(WVW_ROLE_COMMAND)) {
             switch (optionAction.getAsString()) {
                 case "wvw_role_add":
-                    if(authorizationService.authorize(event)) onAddWvwRole(event);
+                    event.deferReply().setEphemeral(true).queue(hook -> {
+                        if(authorizationService.authorize(event, hook)) {
+                            onAddWvwRole(event, hook);
+                        }
+                    });
                     break;
                 case "wvw_role_delete":
-                    if(authorizationService.authorize(event)) onDeleteWvwRole(event);
+                    event.deferReply().setEphemeral(true).queue(hook -> {
+                        if(authorizationService.authorize(event, hook)) {
+                            onDeleteWvwRole(event, hook);
+                        }
+                    });
                     break;
                 case "wvw_role_list":
                     onListWvwRole(event);
@@ -59,10 +68,18 @@ public class RoleCommandsService implements SlashCommandHandler {
         } else if(event.getCommandString().startsWith(MANAGER_ROLE_COMMAND)) {
            switch (optionAction.getAsString()) {
                case "manager_role_add":
-                   if(authorizationService.authorize(event)) onAddManagerRole(event);
+                   event.deferReply().setEphemeral(true).queue(hook -> {
+                       if(authorizationService.authorize(event, hook)) {
+                           onAddManagerRole(event, hook);
+                       }
+                   });
                    break;
                case "manager_role_delete":
-                   if(authorizationService.authorize(event)) onDeleteManagerRole(event);
+                   event.deferReply().setEphemeral(true).queue(hook -> {
+                       if(authorizationService.authorize(event, hook)) {
+                           onDeleteManagerRole(event, hook);
+                       }
+                   });
                    break;
                case "manager_role_list":
                    onListManagerRole(event);
@@ -133,7 +150,7 @@ public class RoleCommandsService implements SlashCommandHandler {
         }
     }
 
-    private void onAddWvwRole(SlashCommandInteractionEvent event) {
+    private void onAddWvwRole(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
         Long roleId = getTargetRoleId(event);
         if(roleId == null) return;
@@ -143,13 +160,13 @@ public class RoleCommandsService implements SlashCommandHandler {
             var role = new WvwRole(guildId, roleId);
             wvwRoleRepository.save(role);
             log.info("Role with id '{}' is now a WvW rank in guild '{}'", roleId, event.getGuild().getName());
-            event.reply("A <@&" + roleId + "> mostantól egy WvW rang.").setEphemeral(true).queue();
+            hook.editOriginal("A <@&" + roleId + "> mostantól egy WvW rang.").queue();
         } else {
-            event.reply("A <@&" + roleId + "> már most is egy WvW rang.").queue();
+            hook.editOriginal("A <@&" + roleId + "> már most is egy WvW rang.").queue();
         }
     }
 
-    private void onDeleteWvwRole(SlashCommandInteractionEvent event) {
+    private void onDeleteWvwRole(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
         Long roleId = getTargetRoleId(event);
         if(roleId == null) return;
@@ -158,9 +175,9 @@ public class RoleCommandsService implements SlashCommandHandler {
         if(optional.isPresent()) {
             wvwRoleRepository.delete(optional.get());
             log.info("Role with id '{}' is no longer a WvW rank in guild '{}'", roleId, event.getGuild().getName());
-            event.reply("A <@&" + roleId + "> mostantól nem WvW rang.").setEphemeral(true).queue();
+            hook.editOriginal("A <@&" + roleId + "> mostantól nem WvW rang.").queue();
         } else {
-            event.reply("A <@&" + roleId + "> nem is volt WvW rang.").queue();
+            hook.editOriginal("A <@&" + roleId + "> nem is volt WvW rang.").queue();
         }
     }
 
@@ -174,7 +191,7 @@ public class RoleCommandsService implements SlashCommandHandler {
         }
     }
 
-    private void onAddManagerRole(SlashCommandInteractionEvent event) {
+    private void onAddManagerRole(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
         Long roleId = getTargetRoleId(event);
         if(roleId == null) return;
@@ -184,13 +201,13 @@ public class RoleCommandsService implements SlashCommandHandler {
             var role = new ManagerRole(guildId, roleId);
             managerRoleRepository.save(role);
             log.info("Role with id '{}' is now a manager rank in guild '{}'", roleId, event.getGuild().getName());
-            event.reply("A <@&" + roleId + "> mostantól egy kezelő rang.").setEphemeral(true).queue();
+            hook.editOriginal("A <@&" + roleId + "> mostantól egy kezelő rang.").queue();
         } else {
-            event.reply("A <@&" + roleId + "> már egy kezelő rang.").queue();
+            hook.editOriginal("A <@&" + roleId + "> már egy kezelő rang.").queue();
         }
     }
 
-    private void onDeleteManagerRole(SlashCommandInteractionEvent event) {
+    private void onDeleteManagerRole(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
         Long roleId = getTargetRoleId(event);
         if(roleId == null) return;
@@ -199,9 +216,9 @@ public class RoleCommandsService implements SlashCommandHandler {
         if(optional.isPresent()) {
             managerRoleRepository.delete(optional.get());
             log.info("Role with id '{}' is no longer a manager rank in guild '{}'", roleId, event.getGuild().getName());
-            event.reply("A <@&" + roleId + "> rang mostantól nem kezelő rang.").setEphemeral(true).queue();
+            hook.editOriginal("A <@&" + roleId + "> rang mostantól nem kezelő rang.").queue();
         } else {
-            event.reply("A <@&" + roleId + "> nem is volt kezelő rang.").queue();
+            hook.editOriginal("A <@&" + roleId + "> nem is volt kezelő rang.").queue();
         }
     }
 

@@ -52,7 +52,8 @@ public class WvwMatchupService implements SlashCommandHandler {
             event.deferReply().queue(hook -> {
                 try {
                     LocalDateTime resetTime = matchupUtils.getWvwResetTime();
-                    boolean nextResetIsRelink = matchupUtils.isRelink(resetTime);
+                    //boolean nextResetIsRelink = matchupUtils.isRelink(resetTime);
+                    boolean nextResetIsRelink = false;
 
                     if(event.getCommandString().startsWith(WVW_MATCHUP_COMMAND)) {
                         createAndSendWvwMatchupReport(homeWorld.get(), resetTime, nextResetIsRelink, hook);
@@ -93,9 +94,9 @@ public class WvwMatchupService implements SlashCommandHandler {
         var report = gw2WvwService.createMatchupReport(homeWorld.getWorldId());
         //build message
         var message = new StringBuilder();
-        message.append("**Jelentés** - ").append(homeWorld.getWorldName()).append("jelenlegi matchup-ja:\n");
+        message.append("**Jelentés** - ").append(homeWorld.getWorldName()).append(" jelenlegi matchup-ja:\n");
         message.append(" - Tier ").append(report.getTier()).append("\n");
-        message.append(" - ").append(getTimeStringUntilReset(resetTime));
+        message.append(" - ").append(getTimeStringUntilReset(resetTime)).append("\n");
         if(isRelink) {
             String warning = EmoteUtils.defaultEmote("warning");
             message.append(" - Figyelem ").append(warning).append(", relink lesz!\n\n");
@@ -104,7 +105,7 @@ public class WvwMatchupService implements SlashCommandHandler {
         }
         message.append(getStringByPlacement(report.getFirstPlace(), homeWorld, 1)).append("\n");
         message.append(getStringByPlacement(report.getSecondPlace(), homeWorld, 2)).append("\n");
-        message.append(getStringByPlacement(report.getThirdPlace(), homeWorld, 3)).append("\n\n");
+        message.append(getStringByPlacement(report.getThirdPlace(), homeWorld, 3)).append("\n");
         message.append("A jövő heti matchup jóslatáért használd a */next_wvw_matchup* parancsot.");
         hook.editOriginal(message.toString()).queue();
     }
@@ -303,8 +304,6 @@ public class WvwMatchupService implements SlashCommandHandler {
 
             if(i > 0) {
                 sideMessage.append(", ");
-            } else {
-                sideMessage.append(": ");
             }
         }
         return sideMessage.toString();

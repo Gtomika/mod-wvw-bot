@@ -11,7 +11,7 @@ public enum MatchupResult {
     /**
      * Advances to the next tier.
      */
-    ADVANCES(1),
+    ADVANCES(-1),
 
     /**
      * Stays in it's current tier.
@@ -21,7 +21,7 @@ public enum MatchupResult {
     /**
      * Drops down to the tier below current tier.
      */
-    DROPS_DOWN(-1);
+    DROPS_DOWN(1);
 
     @Getter
     private final int offset;

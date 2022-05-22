@@ -5,8 +5,8 @@ import com.gaspar.modwvwbot.exception.Gw2ApiException;
 import com.gaspar.modwvwbot.exception.HomeWorldNotFoundException;
 import com.gaspar.modwvwbot.misc.EmoteUtils;
 import com.gaspar.modwvwbot.model.HomeWorld;
-import com.gaspar.modwvwbot.model.gw2api.HomeWorldResponse;
 import com.gaspar.modwvwbot.model.Population;
+import com.gaspar.modwvwbot.model.gw2api.HomeWorldResponse;
 import com.gaspar.modwvwbot.repository.HomeWorldRepository;
 import com.gaspar.modwvwbot.services.gw2api.Gw2WorldService;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -43,6 +44,9 @@ public class HomeWorldCommandService implements SlashCommandHandler {
     @Value("${com.gaspar.modwvwbot.emote_ids.gem}")
     private long gemEmoteId;
 
+    @Value("${com.gaspar.modwvwbot.emote_ids.loading}")
+    private long loadingId;
+
     public HomeWorldCommandService(AuthorizationService authorizationService, HomeWorldRepository homeWorldRepository,
                                    Gw2WorldService gw2WorldService, @Lazy JDA jda, ChannelCommandsService channelCommandsService,
                                    RoleCommandsService roleCommandsService) {
@@ -56,16 +60,18 @@ public class HomeWorldCommandService implements SlashCommandHandler {
 
     @Override
     public void handleSlashCommand(@NotNull SlashCommandInteractionEvent event) {
-        var check = getValidWorldNameOptionOrNull(event);
-        if(check.isProvided() && !check.isValid()) {
-            return; //error response already sent
-        }
-        if(check.isProvided()) {
-            //authorize
-            if(authorizationService.authorize(event)) {
-                //set new home world
-                saveNewHomeWorld(event, check.homeWorldResponse);
-            }
+        var homeWorldName = getWorldNameOptionOrNull(event);
+        if(homeWorldName != null) {
+            event.deferReply().queue(hook -> {
+                //authorize
+                if(authorizationService.authorize(event, hook)) {
+                    String loading = EmoteUtils.animatedEmote("loading", loadingId);
+                    hook.editOriginal("Világ frissítése... " + loading).queue();
+                    //set new home world
+                    saveNewHomeWorld(event, hook, homeWorldName);
+                }
+            });
+
         } else {
             replyWithCurrentHomeWorld(event);
         }
@@ -79,38 +85,17 @@ public class HomeWorldCommandService implements SlashCommandHandler {
         return HOME_WORLD_COMMAND;
     }
 
-    @lombok.Value
-    static class OptionWorldCheck {
-        boolean provided;
-        boolean valid;
-        HomeWorldResponse homeWorldResponse;
-    }
-
     /**
      * Extract parameter 'world_name' from the command. It is allowed for this to not be present, in this
-     * case the bot will reply with the current home world. If it is present, it must be a real GW2 world.
-     * @return Valid world name or null.
+     * case the bot will reply with the current home world. Validity of the parameter is not checked here
+     * @return World name or null.
      */
-    private OptionWorldCheck getValidWorldNameOptionOrNull(SlashCommandInteractionEvent event) {
+    private String getWorldNameOptionOrNull(SlashCommandInteractionEvent event) {
         var optionName = event.getOption(OPTION_WORLD_NAME);
         if(optionName == null) {
-            return new OptionWorldCheck(false, true, null);
+            return null;
         }
-        //is present, validate
-        try {
-            log.debug("Validating home world name '{}' with GW2 API...", optionName.getAsString());
-            var response = gw2WorldService.fetchHomeWorldByName(optionName.getAsString());
-            return new OptionWorldCheck(true, true, response);
-        } catch (Gw2ApiException e) {
-            log.warn("Failed to validate world with name '{}' because of GW2 API failure.", optionName.getAsString(), e);
-            event.reply("A GW2 API hibás választ adott, vagy nem válaszolt. Sajnos nem sikerült beállítani az új világot.").queue();
-            return new OptionWorldCheck(true, false, null);
-        } catch (HomeWorldNotFoundException e) {
-            log.info("'{}' is not a valid GW2 world name.", optionName.getAsString());
-            event.reply("A *'" + optionName.getAsString() + "'* nem egy GW2 világ. Ellenőrizd, hogy nem " +
-                    "gépelted-e el. Figyelem, a nem angol világoknál a nyelvi tag is a név része, pl: 'Dzagonur [DE]'.").queue();
-            return new OptionWorldCheck(true, false, null);
-        }
+        return optionName.getAsString();
     }
 
     private void replyWithCurrentHomeWorld(SlashCommandInteractionEvent event) {
@@ -138,29 +123,52 @@ public class HomeWorldCommandService implements SlashCommandHandler {
         }
     }
 
-    private void saveNewHomeWorld(SlashCommandInteractionEvent event, HomeWorldResponse homeWorldResponse) {
-        var homeWorldOpt = homeWorldRepository.findByGuildId(event.getGuild().getIdLong());
-        if(homeWorldOpt.isPresent()) {
-            log.info("'{}' has set a home world for guild '{}'. Previous one was '{}'.",
-                    event.getUser().getName(), event.getGuild().getName(), homeWorldOpt.get().getWorldName());
-            //update
-            HomeWorld updatedHomeWorld = homeWorldOpt.get();
-            updatedHomeWorld.setWorldName(homeWorldResponse.getName());
-            updatedHomeWorld.setWorldId(homeWorldResponse.getId());
-            updatedHomeWorld.setPopulation(homeWorldResponse.getPopulation());
-            homeWorldRepository.save(updatedHomeWorld);
-        } else {
-            log.info("'{}' has set a home world for guild '{}'. Previously there was no home world set.",
-                    event.getUser().getName(), event.getGuild().getName());
-            HomeWorld newHomeWorld = HomeWorld.builder()
-                    .guildId(event.getGuild().getIdLong())
-                    .worldName(homeWorldResponse.getName())
-                    .worldId(homeWorldResponse.getId())
-                    .population(homeWorldResponse.getPopulation())
-                    .build();
-            homeWorldRepository.save(newHomeWorld);
+    /**
+     * Save new home world for a guild.
+     * @param event Slash command event. DONT use this to reply, only read properties.
+     * @param hook Interactino hook, use this to reply!
+     * @param homeWorldName Name the user specified for new home world. Not validated here!
+     */
+    private void saveNewHomeWorld(
+            SlashCommandInteractionEvent event,
+            InteractionHook hook,
+            String homeWorldName
+    ) {
+        try {
+            //validate name from API
+            log.debug("Validating home world name '{}' with GW2 API...", homeWorldName);
+            var homeWorldResponse = gw2WorldService.fetchHomeWorldByName(homeWorldName);
+            //save
+            var homeWorldOpt = homeWorldRepository.findByGuildId(event.getGuild().getIdLong());
+            if(homeWorldOpt.isPresent()) {
+                log.info("'{}' has set the home world '{}' for guild '{}'. Previous one was '{}'.",
+                        event.getUser().getName(), homeWorldName,event.getGuild().getName(), homeWorldOpt.get().getWorldName());
+                //update
+                HomeWorld updatedHomeWorld = homeWorldOpt.get();
+                updatedHomeWorld.setWorldName(homeWorldResponse.getName());
+                updatedHomeWorld.setWorldId(homeWorldResponse.getId());
+                updatedHomeWorld.setPopulation(homeWorldResponse.getPopulation());
+                homeWorldRepository.save(updatedHomeWorld);
+            } else {
+                log.info("'{}' has set the home world '{}' for guild '{}'. Previously there was no home world set.",
+                        event.getUser().getName(), homeWorldName, event.getGuild().getName());
+                HomeWorld newHomeWorld = HomeWorld.builder()
+                        .guildId(event.getGuild().getIdLong())
+                        .worldName(homeWorldResponse.getName())
+                        .worldId(homeWorldResponse.getId())
+                        .population(homeWorldResponse.getPopulation())
+                        .build();
+                homeWorldRepository.save(newHomeWorld);
+            }
+            hook.editOriginal("A guild WvW világa mostantól **" + homeWorldResponse.getName() + "**.").queue();
+        } catch (Gw2ApiException e) {
+            log.warn("Failed to validate world with name '{}' because of GW2 API failure.", homeWorldName, e);
+            hook.editOriginal("A GW2 API hibás választ adott, vagy nem válaszolt. Sajnos nem sikerült beállítani az új világot.").queue();
+        } catch (HomeWorldNotFoundException e) {
+            log.info("'{}' is not a valid GW2 world name.", homeWorldName);
+            hook.editOriginal("A *'" + homeWorldName + "'* nem egy GW2 világ. Ellenőrizd, hogy nem " +
+                    "gépelted-e el. Figyelem, a nem angol világoknál a nyelvi tag is a név része, pl: 'Dzagonur [DE]'.").queue();;
         }
-        event.reply("A guild WvW világa mostantól **" + homeWorldResponse.getName() + "**.").queue();
     }
 
     public Optional<HomeWorld> getGuildHomeWorld(long guildId) {

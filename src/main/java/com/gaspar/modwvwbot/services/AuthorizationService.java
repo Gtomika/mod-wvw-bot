@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +28,9 @@ public class AuthorizationService {
     @Value("${com.gaspar.modwvwbot.emote_ids.commander}")
     private long commanderEmoteId;
 
+    @Value("${com.gaspar.modwvwbot.reject_all_authorized_commands}")
+    private boolean rejectAllAuthorizedCommands;
+
     private final RoleCommandsService roleCommandsService;
 
     //Lombok won't copy annotation, so this constructor is needed.
@@ -34,12 +38,21 @@ public class AuthorizationService {
     @Autowired
     public AuthorizationService(@Lazy RoleCommandsService roleCommandsService) {
         this.roleCommandsService = roleCommandsService;
+
+    }
+
+    @PostConstruct
+    public void init() {
+        if(rejectAllAuthorizedCommands) {
+            log.warn("Rejecting all authorized commands! This is a debug property.");
+        }
     }
 
     /**
      * Test if a member is authorized to invoke bot commands.
      */
     public boolean isUnauthorizedToManageBot(@Nullable Member member) {
+        if(rejectAllAuthorizedCommands) return true;
         if(member == null) return true;
         if(member.getPermissions().contains(Permission.ADMINISTRATOR)) {
             return false; //admins can always manage

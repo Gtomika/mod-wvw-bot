@@ -50,6 +50,9 @@ public abstract class AmountUtils {
      */
     public static void countInInventory(List<Amount> amounts, InventoryResponse inventory) {
         for(BagResponse bag: inventory.getBags()) {
+            if(bag == null) { //happens when that character has nothing equipped in that bag slot
+                continue;
+            }
             countItemList(amounts, bag.getItems());
         }
     }

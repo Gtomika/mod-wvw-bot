@@ -52,8 +52,7 @@ public class WvwMatchupService implements SlashCommandHandler {
             event.deferReply().queue(hook -> {
                 try {
                     LocalDateTime resetTime = matchupUtils.getWvwResetTime();
-                    //boolean nextResetIsRelink = matchupUtils.isRelink(resetTime);
-                    boolean nextResetIsRelink = false;
+                    boolean nextResetIsRelink = matchupUtils.isRelink(resetTime);
 
                     if(event.getCommandString().startsWith(WVW_MATCHUP_COMMAND)) {
                         createAndSendWvwMatchupReport(homeWorld.get(), resetTime, nextResetIsRelink, hook);

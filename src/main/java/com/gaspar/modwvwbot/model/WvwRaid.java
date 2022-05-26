@@ -18,7 +18,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 public class WvwRaid {
 
-    public static final String DISABLED = "disabled";
+    public static final String DISABLED = "disable";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

@@ -276,33 +276,56 @@ This can't be disabled, but it happens very rarely.
 
 ![screenshot](/images/screenshot_home_world.png)
 
-### Announcements using HTTP POST
+## API
 
-The ```/announcement``` endpoint can be used to *POST* announcement requests to guilds. 
+Some interactions are available with the bot's API. Security token is required for these to work, 
+which can be set with the ```SECURITY_TOKEN``` environmental variable. The token is to be specified as 
+a request parameter: ```[url]?token=[token]```
 
+### Announcements API (POST)
+
+The ```api/announcement``` endpoint can be used to *POST* announcement requests to guilds. 
 Specify the details in the request body:
 
-```json
+```
 {
-  "message": "Message to be announced",
-  "guildIds": [
-    1, 2, 3
-  ]
+  "message": [string],
+  "guildIds": [long array],
+  "mentionWvwRoles": [boolean],
+  "mentionManagerRoles": [boolean]
 }
 ```
 
 The ```guildIds``` field is optional. If not specified, all announcement channels will be 
 used to send the message. Otherwise, use discord guild IDs to limit the target guilds.
 
-A security token is required for the endpoint to work:
-
-```
-[url]/announcement?token=mysecuritytoken
-```
-
-Token can be set using environmental variable ```SECURITY_TOKEN```.
-
 Response is *JSON* with info about how many channels and guilds were affected.
+
+### Statistics API (GET)
+
+The ```/api/stats``` endpoint returns data about bot usage.
+
+```json
+{
+  
+}
+```
+
+### Guilds API (GET)
+
+The ```/api/guilds``` endpoint returns the guilds with names and IDs that the bot is in.
+
+```
+{
+  "guilds": [
+    {
+      "guildName": [string],
+      "guildId": [long]
+    },
+    ... //more guilds
+  ]
+}
+```
 
 ### Bot variations
 
@@ -310,6 +333,12 @@ There are 2 discord bots that run the code:
  - *Mod WvW Bot*: Live version of the bot which supports any sever with global commands.
  - *Mod WvW Bot \[DEV]*: The development version which supports only the test server 
 with server specific commands.
+
+Development bot invite link:
+
+```
+https://discord.com/api/oauth2/authorize?client_id=968767607501115462&permissions=277025704000&scope=bot%20applications.commands
+```
 
 ### Build
 

@@ -24,4 +24,14 @@ public class AnnouncementRequest {
     @Nullable
     private List<Long> guildIds;
 
+    /**
+     * If the Wvw roles should be pinged in this announcement.
+     */
+    private Boolean mentionWvwRoles;
+
+    /**
+     * If the manager roles should be pinged in this announcement.
+     */
+    private Boolean mentionManagerRoles;
+
 }

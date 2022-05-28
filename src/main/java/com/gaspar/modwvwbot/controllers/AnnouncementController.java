@@ -3,7 +3,9 @@ package com.gaspar.modwvwbot.controllers;
 import com.gaspar.modwvwbot.controllers.dto.AnnouncementRequest;
 import com.gaspar.modwvwbot.controllers.dto.AnnouncementResponse;
 import com.gaspar.modwvwbot.exception.UnauthorizedException;
+import com.gaspar.modwvwbot.services.AuthorizationService;
 import com.gaspar.modwvwbot.services.ChannelCommandsService;
+import com.gaspar.modwvwbot.services.botapi.AnnouncementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -14,14 +16,12 @@ import org.springframework.web.bind.annotation.*;
  * announcement channels.
  */
 @RestController
-@RequestMapping("/announcement")
+@RequestMapping("/api/announcement")
 @RequiredArgsConstructor
 public class AnnouncementController {
 
-    @Value("${com.gaspar.modwvwbot.security_token}")
-    private String securityToken;
-
-    private final ChannelCommandsService channelCommandsService;
+    private final AuthorizationService authorizationService;
+    private final AnnouncementService announcementService;
 
     /**
      * Broadcast an announcement across guilds.
@@ -36,10 +36,10 @@ public class AnnouncementController {
     public AnnouncementResponse postAnnouncementInGuilds(
             @RequestBody AnnouncementRequest request,
             @RequestParam(name = "token") String token) {
-        if(!securityToken.equals(token)) {
+        if(authorizationService.isUnauthorizedToCallApi(token)) {
             throw new UnauthorizedException("Invalid security token!");
         }
-        return channelCommandsService.publishAnnouncements(request);
+        return announcementService.publishAnnouncements(request);
     }
 
 }

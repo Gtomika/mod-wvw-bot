@@ -31,6 +31,9 @@ public class AuthorizationService {
     @Value("${com.gaspar.modwvwbot.reject_all_authorized_commands}")
     private boolean rejectAllAuthorizedCommands;
 
+    @Value("${com.gaspar.modwvwbot.security_token}")
+    private String securityToken;
+
     private final RoleCommandsService roleCommandsService;
 
     //Lombok won't copy annotation, so this constructor is needed.
@@ -64,6 +67,16 @@ public class AuthorizationService {
             }
         }
         return true;
+    }
+
+    /**
+     * Decides if a token is valid to call API endpoints.
+     * @param token The token.
+     * @return True if invalid, false otherwise.
+     */
+    public boolean isUnauthorizedToCallApi(String token) {
+        if(token == null) return true;
+        return !securityToken.equals(token);
     }
 
     /**

@@ -252,6 +252,13 @@ public class RoleCommandsService implements SlashCommandHandler {
                 .collect(Collectors.toList());
     }
 
+    public List<String> getManagerRoleIdsFormatted(long guildId) {
+        return managerRoleRepository.findByGuildId(guildId)
+                .stream()
+                .map(role -> "<@&" + role.getRoleId() + ">")
+                .collect(Collectors.toList());
+    }
+
     public List<Long> getWvwRoleIds(long guildId) {
         return wvwRoleRepository.findByGuildId(guildId)
                 .stream()

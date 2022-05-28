@@ -1,5 +1,6 @@
 package com.gaspar.modwvwbot.config;
 
+import com.gaspar.modwvwbot.GuildMembershipHandler;
 import com.gaspar.modwvwbot.SlashCommandDispatcher;
 import com.gaspar.modwvwbot.services.*;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class JDAConfig {
     private final PrivateMessageResponderService privateMessageResponderService;
     private final GeneralMessageResponderService generalMessageResponderService;
     private final SlashCommandDispatcher slashCommandDispatcher;
+    private final GuildMembershipHandler guildMembershipHandler;
 
     @Bean
     public JDA provideJDA() throws LoginException {
@@ -41,7 +43,8 @@ public class JDAConfig {
         return JDABuilder.create(discordToken, gatewayIntents)
                 .addEventListeners(privateMessageResponderService,
                         generalMessageResponderService,
-                        slashCommandDispatcher)
+                        slashCommandDispatcher,
+                        guildMembershipHandler)
                 .setActivity(Activity.playing("WvW"))
                 .build();
     }

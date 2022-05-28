@@ -295,36 +295,4 @@ public class ChannelCommandsService implements SlashCommandHandler {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Make announcements in guilds.
-     * @param request Request with details.
-     * @return Response with details.
-     */
-    public AnnouncementResponse publishAnnouncements(AnnouncementRequest request) {
-        log.info("Posting announcement according to request: {}", request);
-
-        int postChannelCount = 0, failChannelCount = 0;
-        Set<Long> postedGuildIds = new HashSet<>();
-        for(AnnouncementChannel channel: announcementChannelRepository.findAll()) {
-            if(request.getGuildIds() == null || request.getGuildIds().contains(channel.getGuildId())) {
-                //post on this channel
-                TextChannel textChannel = jda.getTextChannelById(channel.getChannelId());
-                if(textChannel != null && textChannel.canTalk()) {
-                    postChannelCount++;
-                    textChannel.sendMessage(request.getMessage()).queue();
-                } else {
-                    failChannelCount++;
-                }
-                postedGuildIds.add(channel.getChannelId());
-            }
-        }
-
-        var response = new AnnouncementResponse(
-                "Announcement successfully posted",
-                postChannelCount,
-                failChannelCount,
-                postedGuildIds.size());
-        log.info("Announcements posted, result is: {}", response);
-        return response;
-    }
 }

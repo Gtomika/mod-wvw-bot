@@ -1,6 +1,8 @@
 package com.gaspar.modwvwbot;
 
 import com.gaspar.modwvwbot.config.SlashCommandConfig;
+import com.gaspar.modwvwbot.model.CommandUsageStatistic;
+import com.gaspar.modwvwbot.services.botapi.CommandUsageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -18,12 +20,22 @@ import org.springframework.stereotype.Component;
 public class SlashCommandDispatcher extends ListenerAdapter {
 
     private final SlashCommandConfig.SlashCommandHandlers commandHandlers;
+    private final CommandUsageService commandUsageService;
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        log.debug("Slash command interaction arrived, dispatching to appropriate service...");
+        log.debug("Slash command interaction arrived: {}", event.getCommandString());
+
+        String command = getCommandName(event);
+        log.debug("Saving command usage...");
+        if(event.getGuild() != null) {
+            commandUsageService.saveCommandUsage(event.getGuild().getIdLong(), command);
+        } else {
+            commandUsageService.saveCommandUsage(CommandUsageStatistic.PRIVATE_MESSAGE_SOURCE, command);
+        }
+
+        log.debug("Dispatching command to appropriate service...");
         try {
-            String command = getCommandName(event);
             for(var handler: commandHandlers.getHandlerList()) {
                 if(handler.handlesMultipleCommands()) {
                     //this handler is responsible for multiple commands

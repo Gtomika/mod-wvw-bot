@@ -24,6 +24,7 @@ https://discord.com/api/v8/applications/968767607501115462/guilds/<guild_id>/com
 
 Some guild IDs:
  - Test server: 968768762885046272
+ - Staging Server: 973656775662399519
  - MoD server: 290549656276959242
 
 ### Authorization of Discord endpoints

@@ -150,16 +150,16 @@ public class ChannelCommandsService implements SlashCommandHandler {
     }
 
     @Nullable
-    private Long getTargetChannelId(SlashCommandInteractionEvent event) {
+    private Long getTargetChannelId(SlashCommandInteractionEvent event, InteractionHook hook) {
         var optionChannel = event.getOption(OPTION_CHANNEL);
         if(optionChannel == null) {
-            event.reply("Hiba: a 'channel_name' értéknek meg kell adni egy szöveges csatornát.").queue();
+            hook.editOriginal("Hiba: a 'channel_name' értéknek meg kell adni egy szöveges csatornát.").queue();
             return null;
         }
 
         TextChannel textChannel = optionChannel.getAsTextChannel();
         if(textChannel == null) {
-            event.reply("Hiba: Szöveges csatornát kell megadni.").queue();
+            hook.editOriginal("Hiba: Szöveges csatornát kell megadni.").queue();
             return null;
         }
         log.debug("Channel name of /watch_channel target is '{}'", textChannel.getName());
@@ -168,7 +168,7 @@ public class ChannelCommandsService implements SlashCommandHandler {
 
     private void onAddWatchedChannel(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
-        Long channelId = getTargetChannelId(event);
+        Long channelId = getTargetChannelId(event, hook);
         if(channelId == null) return;
 
         var optional = watchedChannelRepository.getByGuildIdAndChannelId(guildId, channelId);
@@ -185,7 +185,7 @@ public class ChannelCommandsService implements SlashCommandHandler {
 
     private void onDeleteWatchedChannel(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
-        Long channelId = getTargetChannelId(event);
+        Long channelId = getTargetChannelId(event, hook);
         if(channelId == null) return;
 
         var optional = watchedChannelRepository.getByGuildIdAndChannelId(guildId, channelId);
@@ -236,7 +236,7 @@ public class ChannelCommandsService implements SlashCommandHandler {
 
     private void onAddAnnouncementChannel(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
-        Long channelId = getTargetChannelId(event);
+        Long channelId = getTargetChannelId(event, hook);
         if(channelId == null) return;
 
         var optional = announcementChannelRepository.getByGuildIdAndChannelId(guildId, channelId);
@@ -253,7 +253,7 @@ public class ChannelCommandsService implements SlashCommandHandler {
 
     private void onDeleteAnnouncementChannel(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
-        Long channelId = getTargetChannelId(event);
+        Long channelId = getTargetChannelId(event, hook);
         if(channelId == null) return;
 
         var optional = announcementChannelRepository.getByGuildIdAndChannelId(guildId, channelId);

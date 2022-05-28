@@ -95,7 +95,7 @@ public class WvwMatchupService implements SlashCommandHandler {
         var message = new StringBuilder();
         message.append("**Jelentés** - ").append(homeWorld.getWorldName()).append(" jelenlegi matchup-ja:\n");
         message.append(" - Tier ").append(report.getTier()).append("\n");
-        message.append(" - ").append(getTimeStringUntilReset(resetTime)).append("\n");
+        message.append(" - ").append(getTimeStringUntilReset(resetTime));
         if(isRelink) {
             String warning = EmoteUtils.defaultEmote("warning");
             message.append(" - Figyelem ").append(warning).append(", relink lesz!\n\n");

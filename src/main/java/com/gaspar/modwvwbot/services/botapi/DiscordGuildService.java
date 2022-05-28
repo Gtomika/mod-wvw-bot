@@ -60,4 +60,12 @@ public class DiscordGuildService {
             log.warn("Bot was not part of guild it just left. This is an illegal state.");
         }
     }
+
+    /**
+     * Checks if the bot is currently in a guild.
+     */
+    public boolean isInGuild(long guildId) {
+        var optional = discordGuildRepository.findByGuildId(guildId);
+        return optional.isPresent();
+    }
 }

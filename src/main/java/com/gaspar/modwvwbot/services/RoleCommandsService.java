@@ -135,24 +135,24 @@ public class RoleCommandsService implements SlashCommandHandler {
      * Extract the target role of the event. This is the one that is to be added/deleted.
      */
     @Nullable
-    private Long getTargetRoleId(SlashCommandInteractionEvent event) {
+    private Long getTargetRoleId(SlashCommandInteractionEvent event, InteractionHook hook) {
         var optionChannel = event.getOption(OPTION_ROLE);
         if(optionChannel == null) {
-            event.reply("Hiba: a 'role' értéknek meg kell adni egy rangot.").queue();
+            hook.editOriginal("Hiba: a 'role' értéknek meg kell adni egy rangot.").queue();
             return null;
         }
         try {
             Role role = optionChannel.getAsRole();
             return role.getIdLong();
         } catch (IllegalStateException e) {
-            event.reply("Hiba: a 'role' értéknek egy rangot kell adni.").queue();
+            hook.editOriginal("Hiba: a 'role' értéknek egy rangot kell adni.").queue();
             return null;
         }
     }
 
     private void onAddWvwRole(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
-        Long roleId = getTargetRoleId(event);
+        Long roleId = getTargetRoleId(event, hook);
         if(roleId == null) return;
 
         var optional = wvwRoleRepository.findByGuildIdAndRoleId(guildId, roleId);
@@ -168,7 +168,7 @@ public class RoleCommandsService implements SlashCommandHandler {
 
     private void onDeleteWvwRole(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
-        Long roleId = getTargetRoleId(event);
+        Long roleId = getTargetRoleId(event, hook);
         if(roleId == null) return;
 
         var optional = wvwRoleRepository.findByGuildIdAndRoleId(guildId, roleId);
@@ -193,7 +193,7 @@ public class RoleCommandsService implements SlashCommandHandler {
 
     private void onAddManagerRole(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
-        Long roleId = getTargetRoleId(event);
+        Long roleId = getTargetRoleId(event, hook);
         if(roleId == null) return;
 
         var optional = managerRoleRepository.findByGuildIdAndRoleId(guildId, roleId);
@@ -209,7 +209,7 @@ public class RoleCommandsService implements SlashCommandHandler {
 
     private void onDeleteManagerRole(SlashCommandInteractionEvent event, InteractionHook hook) {
         long guildId = event.getGuild().getIdLong();
-        Long roleId = getTargetRoleId(event);
+        Long roleId = getTargetRoleId(event, hook);
         if(roleId == null) return;
 
         var optional = managerRoleRepository.findByGuildIdAndRoleId(guildId, roleId);

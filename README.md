@@ -303,11 +303,42 @@ Response is *JSON* with info about how many channels and guilds were affected.
 
 ### Statistics API (GET)
 
-The ```/api/stats``` endpoint returns data about bot usage.
+The ```/api/stats/guild/{guildId}``` endpoint returns data about bot command usage in a guild. Specify 
+0 as guild ID to get statistics about commands in private messages.
 
-```json
+```
 {
-  
+  "usage": [
+    {
+      "year": [integer],
+      "month": [month enum],
+      "commands": [
+        {
+          "name": [string],
+          "count": [integer]
+        },
+        ... //more commands
+      ]
+    },
+    ... //more year+month data
+  ] 
+}
+```
+
+The ```/api/stats/command/{commandName}``` endpoint returns data about usage of a single command
+(across all guilds). The command name in the URL must not include the slash at the start of the command. 
+For example use when you want the ```/wvw_items``` command, use ```wvw_items```.
+
+```
+{
+  "usage": [
+    {
+      "year": [integer],
+      "month": [month enum],
+      "count": [integer]
+    },
+    ... //more year+month data
+  ]
 }
 ```
 
